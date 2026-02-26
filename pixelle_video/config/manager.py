@@ -170,3 +170,25 @@ class ConfigManager:
         if updates:
             self.update({"comfyui": updates})
 
+    def get_media_config(self) -> dict:
+        """Get media generation configuration as dict"""
+        return {
+            "mode": self.config.media.mode,
+            "api": {
+                "base_url": self.config.media.api.base_url,
+                "api_key": self.config.media.api.api_key,
+                "image_model": self.config.media.api.image_model,
+                "video_model": self.config.media.api.video_model,
+                "video_base_url": self.config.media.api.video_base_url,
+                "video_api_key": self.config.media.api.video_api_key,
+                "default_size": self.config.media.api.default_size,
+            }
+        }
+
+    def set_media_config(self, mode: str, api_config: Optional[dict] = None):
+        """Set media generation configuration"""
+        updates: dict = {"mode": mode}
+        if api_config:
+            updates["api"] = api_config
+        self.update({"media": updates})
+

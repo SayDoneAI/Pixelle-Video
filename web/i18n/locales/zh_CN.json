@@ -502,6 +502,28 @@
     "selfhost.warning.title": "您选择了 SelfHost（本地）工作流，请务必先确认以下事项：",
     "selfhost.warning.message": "1. 请先在您的 ComfyUI 环境（{comfyui_url}）中**单独加载并运行** `{workflow_path}` 工作流\n2. 确保该工作流**能够正常运行完成**，没有节点缺失或模型缺失等错误\n3. 工作流调试通过后，再回到本项目使用",
     "selfhost.warning.hint": "⚠️ 如果您没有在 ComfyUI 中跑通该工作流，后续运行**一定会失败**（通常报 400 错误）！请勿跳过此步骤。",
-    "selfhost.warning.confirm": "我已了解，继续使用"
+    "selfhost.warning.confirm": "我已了解，继续使用",
+
+    "settings.media.title": "📡 媒体生成模式",
+    "settings.media.mode": "生成模式",
+    "settings.media.mode_help": "ComfyUI 使用工作流；API 使用 OpenAI 兼容接口",
+    "settings.media.mode_comfyui": "ComfyUI",
+    "settings.media.mode_api": "API",
+    "settings.media.api_base_url": "API Base URL",
+    "settings.media.api_base_url_help": "OpenAI 兼容的 API 地址",
+    "settings.media.api_key": "API Key",
+    "settings.media.api_key_help": "API 认证密钥",
+    "settings.media.image_model": "图片模型",
+    "settings.media.image_model_help": "图片生成模型名称",
+    "settings.media.video_model": "视频模型",
+    "settings.media.video_model_help": "视频生成模型名称（如 kling-v1）",
+    "settings.media.video_base_url": "视频 API Base URL",
+    "settings.media.video_base_url_help": "留空则使用与图片相同的地址",
+    "settings.media.video_api_key": "视频 API Key",
+    "settings.media.video_api_key_help": "留空则使用与图片相同的密钥",
+    "settings.media.api_hint": "API 模式：使用 OpenAI 兼容接口，无需 ComfyUI",
+    "settings.media.comfyui_hint": "ComfyUI 模式：基于工作流的媒体生成",
+    "style.api_mode_info": "API 模式已启用 — 通过 API 生成媒体，无需选择工作流",
+    "style.api_mode_model_info": "图片模型: {image_model} | 视频模型: {video_model}"
   }
 }

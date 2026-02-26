@@ -502,6 +502,28 @@
     "selfhost.warning.title": "You have selected a SelfHost (local) workflow. Please confirm the following:",
     "selfhost.warning.message": "1. First, **load and run** `{workflow_path}` workflow in your ComfyUI environment ({comfyui_url})\n2. Ensure the workflow **runs successfully** without missing nodes or models\n3. After the workflow is verified, return to this project to use it",
     "selfhost.warning.hint": "⚠️ If you haven't verified this workflow in ComfyUI, subsequent runs **will definitely fail** (usually 400 error)! Do not skip this step.",
-    "selfhost.warning.confirm": "I understand, continue"
+    "selfhost.warning.confirm": "I understand, continue",
+
+    "settings.media.title": "📡 Media Generation Mode",
+    "settings.media.mode": "Generation Mode",
+    "settings.media.mode_help": "ComfyUI uses workflows; API uses OpenAI-compatible endpoints",
+    "settings.media.mode_comfyui": "ComfyUI",
+    "settings.media.mode_api": "API",
+    "settings.media.api_base_url": "API Base URL",
+    "settings.media.api_base_url_help": "OpenAI-compatible API base URL",
+    "settings.media.api_key": "API Key",
+    "settings.media.api_key_help": "API authentication key",
+    "settings.media.image_model": "Image Model",
+    "settings.media.image_model_help": "Model name for image generation",
+    "settings.media.video_model": "Video Model",
+    "settings.media.video_model_help": "Model name for video generation (e.g. kling-v1)",
+    "settings.media.video_base_url": "Video API Base URL",
+    "settings.media.video_base_url_help": "Leave empty to use same as image API",
+    "settings.media.video_api_key": "Video API Key",
+    "settings.media.video_api_key_help": "Leave empty to use same as image API",
+    "settings.media.api_hint": "API mode: OpenAI-compatible endpoints, no ComfyUI required",
+    "settings.media.comfyui_hint": "ComfyUI mode: workflow-based media generation",
+    "style.api_mode_info": "API mode active — media generated via API, no workflow selection needed",
+    "style.api_mode_model_info": "Image: {image_model} | Video: {video_model}"
   }
 }

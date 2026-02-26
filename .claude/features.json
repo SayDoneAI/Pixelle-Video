@@ -32,7 +32,7 @@
     {
       "id": "F003",
       "name": "Web UI模式切换",
-      "status": "pending",
+      "status": "done",
       "description": "在Web界面支持ComfyUI/API模式切换，API模式下隐藏ComfyUI相关配置。延期到F001/F002完成后再做。",
       "acceptance": [
         "用户可在Web UI中选择生图模式（ComfyUI或API）",
@@ -94,6 +94,8 @@
     "接口契约完整性（list_workflows 等辅助方法也需实现）",
     "httpx 异常需分层包装（HTTPStatusError + HTTPError 兜底）",
     "轮询超时必须用 time.monotonic() 而非手动累加",
-    "长轮询场景复用 AsyncClient 避免连接浪费"
+    "长轮询场景复用 AsyncClient 避免连接浪费",
+    "Streamlit 图片展示用 st.image() 不要手拼 HTML（XSS 风险）",
+    "UI 分支变量需在分支前初始化默认值"
   ]
 }

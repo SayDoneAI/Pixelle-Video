@@ -203,130 +203,220 @@ def render_advanced_settings():
                     llm_model = selected_model_option
         
         # ====================================================================
-        # Column 2: ComfyUI Settings
+        # Column 2: Media Mode + ComfyUI / API Settings
         # ====================================================================
         with comfyui_col:
+            # --- Media Mode Selector ---
             with st.container(border=True):
-                st.markdown(f"**{tr('settings.comfyui.title')}**")
-                
-                # Get current configuration
-                comfyui_config = config_manager.get_comfyui_config()
-                
-                # Local/Self-hosted ComfyUI configuration
-                st.markdown(f"**{tr('settings.comfyui.local_title')}**")
-                url_col, key_col = st.columns(2)
-                with url_col:
-                    comfyui_url = st.text_input(
-                        tr("settings.comfyui.comfyui_url"),
-                        value=comfyui_config.get("comfyui_url", "http://127.0.0.1:8188"),
-                        help=tr("settings.comfyui.comfyui_url_help"),
-                        key="comfyui_url_input"
+                st.markdown(f"**{tr('settings.media.title')}**")
+
+                media_config = config_manager.get_media_config()
+                current_mode = media_config.get("mode", "comfyui")
+
+                media_mode = st.radio(
+                    tr("settings.media.mode"),
+                    ["comfyui", "api"],
+                    horizontal=True,
+                    format_func=lambda x: tr(f"settings.media.mode_{x}"),
+                    index=0 if current_mode == "comfyui" else 1,
+                    help=tr("settings.media.mode_help"),
+                    key="media_mode_radio"
+                )
+
+                if media_mode == "api":
+                    st.caption(tr("settings.media.api_hint"))
+                else:
+                    st.caption(tr("settings.media.comfyui_hint"))
+
+            # Default values for branch-dependent variables to avoid NameError
+            media_api_base_url = ""
+            media_api_key = ""
+            media_image_model = ""
+            media_video_model = ""
+            media_video_base_url = ""
+            media_video_api_key = ""
+            comfyui_url = ""
+            comfyui_api_key = ""
+            runninghub_api_key = ""
+            runninghub_concurrent_limit = 1
+            runninghub_48g_enabled = False
+
+            # --- API Mode Config ---
+            if media_mode == "api":
+                with st.container(border=True):
+                    api_cfg = media_config.get("api", {})
+
+                    media_api_base_url = st.text_input(
+                        tr("settings.media.api_base_url"),
+                        value=api_cfg.get("base_url", ""),
+                        help=tr("settings.media.api_base_url_help"),
+                        key="media_api_base_url_input"
                     )
-                with key_col:
-                    comfyui_api_key = st.text_input(
-                        tr("settings.comfyui.comfyui_api_key"),
-                        value=comfyui_config.get("comfyui_api_key", ""),
+                    media_api_key = st.text_input(
+                        tr("settings.media.api_key"),
+                        value=api_cfg.get("api_key", ""),
                         type="password",
-                        help=tr("settings.comfyui.comfyui_api_key_help"),
-                        key="comfyui_api_key_input"
+                        help=tr("settings.media.api_key_help"),
+                        key="media_api_key_input"
                     )
-                
-                # Test connection button
-                if st.button(tr("btn.test_connection"), key="test_comfyui", use_container_width=True):
-                    try:
-                        import requests
-                        response = requests.get(f"{comfyui_url}/system_stats", timeout=5)
-                        if response.status_code == 200:
-                            st.success(tr("status.connection_success"))
-                        else:
-                            st.error(tr("status.connection_failed"))
-                    except Exception as e:
-                        st.error(f"{tr('status.connection_failed')}: {str(e)}")
-                
-                st.markdown("---")
-                
-                # RunningHub cloud configuration
-                st.markdown(f"**{tr('settings.comfyui.cloud_title')}**")
-                runninghub_api_key = st.text_input(
-                    tr("settings.comfyui.runninghub_api_key"),
-                    value=comfyui_config.get("runninghub_api_key", ""),
-                    type="password",
-                    help=tr("settings.comfyui.runninghub_api_key_help"),
-                    key="runninghub_api_key_input"
-                )
-                st.caption(
-                    f"{tr('settings.comfyui.runninghub_hint')} "
-                    f"[{tr('settings.comfyui.runninghub_get_api_key')}]"
-                    f"(https://www.runninghub{'.cn' if get_language() == 'zh_CN' else '.ai'}/?inviteCode=bozpdlbj)"
-                )
-                
-                # RunningHub concurrent limit and instance type (in one row)
-                limit_col, instance_col = st.columns(2)
-                with limit_col:
-                    runninghub_concurrent_limit = st.number_input(
-                        tr("settings.comfyui.runninghub_concurrent_limit"),
-                        min_value=1,
-                        max_value=10,
-                        value=comfyui_config.get("runninghub_concurrent_limit", 1),
-                        help=tr("settings.comfyui.runninghub_concurrent_limit_help"),
-                        key="runninghub_concurrent_limit_input"
+
+                    img_col, vid_col = st.columns(2)
+                    with img_col:
+                        media_image_model = st.text_input(
+                            tr("settings.media.image_model"),
+                            value=api_cfg.get("image_model", ""),
+                            help=tr("settings.media.image_model_help"),
+                            key="media_image_model_input"
+                        )
+                    with vid_col:
+                        media_video_model = st.text_input(
+                            tr("settings.media.video_model"),
+                            value=api_cfg.get("video_model", ""),
+                            help=tr("settings.media.video_model_help"),
+                            key="media_video_model_input"
+                        )
+
+                    with st.expander(tr("settings.media.video_base_url"), expanded=False):
+                        media_video_base_url = st.text_input(
+                            tr("settings.media.video_base_url"),
+                            value=api_cfg.get("video_base_url", ""),
+                            help=tr("settings.media.video_base_url_help"),
+                            key="media_video_base_url_input",
+                            label_visibility="collapsed"
+                        )
+                        media_video_api_key = st.text_input(
+                            tr("settings.media.video_api_key"),
+                            value=api_cfg.get("video_api_key", ""),
+                            type="password",
+                            help=tr("settings.media.video_api_key_help"),
+                            key="media_video_api_key_input"
+                        )
+
+            # --- ComfyUI Mode Config ---
+            else:
+                with st.container(border=True):
+                    st.markdown(f"**{tr('settings.comfyui.title')}**")
+
+                    comfyui_config = config_manager.get_comfyui_config()
+
+                    st.markdown(f"**{tr('settings.comfyui.local_title')}**")
+                    url_col, key_col = st.columns(2)
+                    with url_col:
+                        comfyui_url = st.text_input(
+                            tr("settings.comfyui.comfyui_url"),
+                            value=comfyui_config.get("comfyui_url", "http://127.0.0.1:8188"),
+                            help=tr("settings.comfyui.comfyui_url_help"),
+                            key="comfyui_url_input"
+                        )
+                    with key_col:
+                        comfyui_api_key = st.text_input(
+                            tr("settings.comfyui.comfyui_api_key"),
+                            value=comfyui_config.get("comfyui_api_key", ""),
+                            type="password",
+                            help=tr("settings.comfyui.comfyui_api_key_help"),
+                            key="comfyui_api_key_input"
+                        )
+
+                    if st.button(tr("btn.test_connection"), key="test_comfyui", use_container_width=True):
+                        try:
+                            import requests
+                            response = requests.get(f"{comfyui_url}/system_stats", timeout=5)
+                            if response.status_code == 200:
+                                st.success(tr("status.connection_success"))
+                            else:
+                                st.error(tr("status.connection_failed"))
+                        except Exception as e:
+                            st.error(f"{tr('status.connection_failed')}: {str(e)}")
+
+                    st.markdown("---")
+
+                    st.markdown(f"**{tr('settings.comfyui.cloud_title')}**")
+                    runninghub_api_key = st.text_input(
+                        tr("settings.comfyui.runninghub_api_key"),
+                        value=comfyui_config.get("runninghub_api_key", ""),
+                        type="password",
+                        help=tr("settings.comfyui.runninghub_api_key_help"),
+                        key="runninghub_api_key_input"
                     )
-                with instance_col:
-                    # Check if instance type is "plus" (48G VRAM enabled)
-                    current_instance_type = comfyui_config.get("runninghub_instance_type") or ""
-                    is_plus_enabled = current_instance_type == "plus"
-                    # Instance type options with i18n
-                    instance_options = [
-                        tr("settings.comfyui.runninghub_instance_24g"),
-                        tr("settings.comfyui.runninghub_instance_48g"),
-                    ]
-                    runninghub_instance_type_display = st.selectbox(
-                        tr("settings.comfyui.runninghub_instance_type"),
-                        options=instance_options,
-                        index=1 if is_plus_enabled else 0,
-                        help=tr("settings.comfyui.runninghub_instance_type_help"),
-                        key="runninghub_instance_type_input"
+                    st.caption(
+                        f"{tr('settings.comfyui.runninghub_hint')} "
+                        f"[{tr('settings.comfyui.runninghub_get_api_key')}]"
+                        f"(https://www.runninghub{'.cn' if get_language() == 'zh_CN' else '.ai'}/?inviteCode=bozpdlbj)"
                     )
-                    # Convert display value back to actual value
-                    runninghub_48g_enabled = runninghub_instance_type_display == tr("settings.comfyui.runninghub_instance_48g")
-        
+
+                    limit_col, instance_col = st.columns(2)
+                    with limit_col:
+                        runninghub_concurrent_limit = st.number_input(
+                            tr("settings.comfyui.runninghub_concurrent_limit"),
+                            min_value=1,
+                            max_value=10,
+                            value=comfyui_config.get("runninghub_concurrent_limit", 1),
+                            help=tr("settings.comfyui.runninghub_concurrent_limit_help"),
+                            key="runninghub_concurrent_limit_input"
+                        )
+                    with instance_col:
+                        current_instance_type = comfyui_config.get("runninghub_instance_type") or ""
+                        is_plus_enabled = current_instance_type == "plus"
+                        instance_options = [
+                            tr("settings.comfyui.runninghub_instance_24g"),
+                            tr("settings.comfyui.runninghub_instance_48g"),
+                        ]
+                        runninghub_instance_type_display = st.selectbox(
+                            tr("settings.comfyui.runninghub_instance_type"),
+                            options=instance_options,
+                            index=1 if is_plus_enabled else 0,
+                            help=tr("settings.comfyui.runninghub_instance_type_help"),
+                            key="runninghub_instance_type_input"
+                        )
+                        runninghub_48g_enabled = runninghub_instance_type_display == tr("settings.comfyui.runninghub_instance_48g")
+
         # ====================================================================
         # Action Buttons (full width at bottom)
         # ====================================================================
         st.markdown("---")
-        
+
         col1, col2 = st.columns(2)
         with col1:
             if st.button(tr("btn.save_config"), use_container_width=True, key="save_config_btn"):
                 try:
-                    # Validate and save LLM configuration
                     if not (llm_api_key and llm_base_url and llm_model):
                         st.error(tr("status.llm_config_incomplete"))
                     else:
                         config_manager.set_llm_config(llm_api_key, llm_base_url, llm_model)
-                    
-                    # Save ComfyUI configuration (optional fields, always save what's provided)
-                    # Convert checkbox to instance type: True -> "plus", False -> ""
-                    instance_type = "plus" if runninghub_48g_enabled else ""
-                    config_manager.set_comfyui_config(
-                        comfyui_url=comfyui_url if comfyui_url else None,
-                        comfyui_api_key=comfyui_api_key if comfyui_api_key else None,
-                        runninghub_api_key=runninghub_api_key if runninghub_api_key else None,
-                        runninghub_concurrent_limit=int(runninghub_concurrent_limit),
-                        runninghub_instance_type=instance_type
-                    )
-                    
-                    # Only save to file if LLM config is valid
+
+                    # Save media mode config
+                    if media_mode == "api":
+                        config_manager.set_media_config(
+                            mode="api",
+                            api_config={
+                                "base_url": media_api_base_url,
+                                "api_key": media_api_key,
+                                "image_model": media_image_model,
+                                "video_model": media_video_model,
+                                "video_base_url": media_video_base_url,
+                                "video_api_key": media_video_api_key,
+                            }
+                        )
+                    else:
+                        config_manager.set_media_config(mode="comfyui")
+                        instance_type = "plus" if runninghub_48g_enabled else ""
+                        config_manager.set_comfyui_config(
+                            comfyui_url=comfyui_url if comfyui_url else None,
+                            comfyui_api_key=comfyui_api_key if comfyui_api_key else None,
+                            runninghub_api_key=runninghub_api_key if runninghub_api_key else None,
+                            runninghub_concurrent_limit=int(runninghub_concurrent_limit),
+                            runninghub_instance_type=instance_type
+                        )
+
                     if llm_api_key and llm_base_url and llm_model:
                         config_manager.save()
                         st.success(tr("status.config_saved"))
                         safe_rerun()
                 except Exception as e:
                     st.error(f"{tr('status.save_failed')}: {str(e)}")
-        
+
         with col2:
             if st.button(tr("btn.reset_config"), use_container_width=True, key="reset_config_btn"):
-                # Reset to default
                 from pixelle_video.config.schema import PixelleVideoConfig
                 config_manager.config = PixelleVideoConfig()
                 config_manager.save()

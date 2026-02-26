@@ -15,7 +15,7 @@ Configuration schema with Pydantic models
 
 Single source of truth for all configuration defaults and validation.
 """
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -94,7 +94,7 @@ class MediaApiConfig(BaseModel):
 
 class MediaConfig(BaseModel):
     """Media generation configuration (top-level)"""
-    mode: str = Field(default="comfyui", description="Media generation mode: 'comfyui' or 'api'")
+    mode: Literal["comfyui", "api"] = Field(default="comfyui", description="Media generation mode: 'comfyui' or 'api'")
     api: MediaApiConfig = Field(default_factory=MediaApiConfig, description="API mode configuration")
 
 

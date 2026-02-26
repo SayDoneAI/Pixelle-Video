@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "tool == \"Write\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/skills/jarvis-setup-hooks/hooks/block-md-files.js\""
+          }
+        ]
+      }
+    ]
+  }
+}
