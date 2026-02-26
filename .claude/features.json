@@ -83,8 +83,8 @@
         "pixelle_video/services/api_media.py",
         "pixelle_video/services/frame_processor.py"
       ],
-      "status": "unverified",
-      "evidence": { "method": "none" }
+      "status": "manually_verified",
+      "evidence": { "method": "code_review_2_rounds" }
     }
   ],
   "reviewLessons": [
@@ -92,6 +92,8 @@
     "改动范围：评估时必须追踪MediaResult的所有消费者，不仅是直接调用者",
     "异步API：必须在需求阶段明确轮询策略、超时、重试、错误映射",
     "接口契约完整性（list_workflows 等辅助方法也需实现）",
-    "httpx 异常需分层包装（HTTPStatusError + HTTPError 兜底）"
+    "httpx 异常需分层包装（HTTPStatusError + HTTPError 兜底）",
+    "轮询超时必须用 time.monotonic() 而非手动累加",
+    "长轮询场景复用 AsyncClient 避免连接浪费"
   ]
 }
