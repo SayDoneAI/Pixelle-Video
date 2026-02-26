@@ -1,0 +1,97 @@
+{
+  "version": "v2",
+  "updated": "2026-02-26",
+  "note": "Pixelle-Video — AI全自动短视频引擎，新增API直连生图/生视频能力",
+  "features": [
+    {
+      "id": "F001",
+      "name": "API直连生图服务",
+      "status": "done",
+      "description": "新增ApiMediaService，调用OpenAI兼容的/v1/images/generations接口生图，与ComfyUI模式共存。返回URL格式的MediaResult，复用现有FrameProcessor下载逻辑。",
+      "acceptance": [
+        "config.yaml配置media.mode=api时，生图走API而非ComfyUI",
+        "config.yaml未配置media段或media.mode=comfyui时，行为与现在完全一致",
+        "ApiMediaService返回URL格式的MediaResult，FrameProcessor._download_media无需修改",
+        "Mac上无GPU无ComfyUI能生成包含AI配图的完整视频",
+        "Pipeline层和FrameProcessor层代码零改动"
+      ]
+    },
+    {
+      "id": "F002",
+      "name": "API直连生视频服务",
+      "status": "pending",
+      "description": "在ApiMediaService中支持可灵等异步视频生成API，含轮询/超时/重试策略。",
+      "acceptance": [
+        "media_type=video时调用可灵API提交异步任务",
+        "指数退避轮询（初始2s，最大30s，总超时300s）",
+        "429/5xx自动重试（最多3次），其他错误立即失败并给出可读错误信息",
+        "任务完成后返回视频URL格式的MediaResult",
+        "超时或失败时抛出明确异常，不静默吞错"
+      ]
+    },
+    {
+      "id": "F003",
+      "name": "Web UI模式切换",
+      "status": "pending",
+      "description": "在Web界面支持ComfyUI/API模式切换，API模式下隐藏ComfyUI相关配置。延期到F001/F002完成后再做。",
+      "acceptance": [
+        "用户可在Web UI中选择生图模式（ComfyUI或API）",
+        "API模式下隐藏ComfyUI workflow选择和相关配置",
+        "API模式下显示image_model/video_model选择"
+      ]
+    }
+  ],
+  "criticalPaths": [
+    {
+      "id": "CP-01",
+      "name": "文本→LLM旁白→生图→TTS→ffmpeg合成视频（标准流水线）",
+      "steps": ["用户输入文本", "LLM提炼旁白", "生图(ComfyUI/API)", "TTS语音合成", "FrameProcessor帧合成", "视频拼接+BGM"],
+      "features": ["F001"],
+      "modules": [
+        "pixelle_video/pipelines/standard.py",
+        "pixelle_video/services/llm_service.py",
+        "pixelle_video/services/media.py",
+        "pixelle_video/services/api_media.py",
+        "pixelle_video/services/tts_service.py",
+        "pixelle_video/services/video.py",
+        "pixelle_video/services/frame_processor.py",
+        "pixelle_video/utils/content_generators.py"
+      ],
+      "status": "unverified",
+      "evidence": { "method": "none" }
+    },
+    {
+      "id": "CP-02",
+      "name": "API直连生图链路（无ComfyUI）",
+      "steps": ["读取media.mode=api配置", "初始化ApiMediaService", "Pipeline调用self.media(prompt=...)", "ApiMediaService调用/v1/images/generations", "返回URL格式MediaResult", "FrameProcessor._download_media下载到本地"],
+      "features": ["F001"],
+      "modules": [
+        "pixelle_video/services/api_media.py",
+        "pixelle_video/service.py",
+        "pixelle_video/config/schema.py",
+        "pixelle_video/services/frame_processor.py"
+      ],
+      "status": "manually_verified",
+      "evidence": { "method": "code_review_3_rounds" }
+    },
+    {
+      "id": "CP-03",
+      "name": "API异步生视频链路",
+      "steps": ["Pipeline调用self.media(prompt=..., media_type=video)", "ApiMediaService提交异步任务", "指数退避轮询状态", "任务完成获取视频URL", "返回URL格式MediaResult", "FrameProcessor下载视频到本地"],
+      "features": ["F002"],
+      "modules": [
+        "pixelle_video/services/api_media.py",
+        "pixelle_video/services/frame_processor.py"
+      ],
+      "status": "unverified",
+      "evidence": { "method": "none" }
+    }
+  ],
+  "reviewLessons": [
+    "接口兼容：新service必须返回与现有消费者(FrameProcessor._download_media)兼容的格式(URL)，不能返回本地路径",
+    "改动范围：评估时必须追踪MediaResult的所有消费者，不仅是直接调用者",
+    "异步API：必须在需求阶段明确轮询策略、超时、重试、错误映射",
+    "接口契约完整性（list_workflows 等辅助方法也需实现）",
+    "httpx 异常需分层包装（HTTPStatusError + HTTPError 兜底）"
+  ]
+}

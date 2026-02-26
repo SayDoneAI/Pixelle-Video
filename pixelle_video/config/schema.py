@@ -16,6 +16,7 @@ Configuration schema with Pydantic models
 Single source of truth for all configuration defaults and validation.
 """
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -80,6 +81,20 @@ class ComfyUIConfig(BaseModel):
     video: VideoSubConfig = Field(default_factory=VideoSubConfig, description="Video-specific configuration")
 
 
+class MediaApiConfig(BaseModel):
+    """API-based media generation configuration"""
+    base_url: str = Field(default="", description="OpenAI-compatible API base URL")
+    api_key: str = Field(default="", description="API key")
+    image_model: str = Field(default="", description="Image generation model name")
+    default_size: str = Field(default="1024x1024", description="Default image size (WxH)")
+
+
+class MediaConfig(BaseModel):
+    """Media generation configuration (top-level)"""
+    mode: str = Field(default="comfyui", description="Media generation mode: 'comfyui' or 'api'")
+    api: MediaApiConfig = Field(default_factory=MediaApiConfig, description="API mode configuration")
+
+
 class TemplateConfig(BaseModel):
     """Template configuration"""
     default_template: str = Field(
@@ -93,6 +108,7 @@ class PixelleVideoConfig(BaseModel):
     project_name: str = Field(default="Pixelle-Video", description="Project name")
     llm: LLMConfig = Field(default_factory=LLMConfig)
     comfyui: ComfyUIConfig = Field(default_factory=ComfyUIConfig)
+    media: MediaConfig = Field(default_factory=MediaConfig)
     template: TemplateConfig = Field(default_factory=TemplateConfig)
     
     def is_llm_configured(self) -> bool:

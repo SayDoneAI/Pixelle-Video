@@ -18,24 +18,25 @@ Provides unified access to all capabilities (LLM, TTS, Image, etc.)
 
 import hashlib
 import json
-from typing import Optional
+from typing import Optional, Union
 
-from loguru import logger
 from comfykit import ComfyKit
+from loguru import logger
 
 from pixelle_video.config import config_manager
-from pixelle_video.services.llm_service import LLMService
-from pixelle_video.services.tts_service import TTSService
-from pixelle_video.services.media import MediaService
-from pixelle_video.services.image_analysis import ImageAnalysisService
-from pixelle_video.services.video_analysis import VideoAnalysisService
-from pixelle_video.services.video import VideoService
-from pixelle_video.services.frame_processor import FrameProcessor
-from pixelle_video.services.persistence import PersistenceService
-from pixelle_video.services.history_manager import HistoryManager
-from pixelle_video.pipelines.standard import StandardPipeline
-from pixelle_video.pipelines.custom import CustomPipeline
 from pixelle_video.pipelines.asset_based import AssetBasedPipeline
+from pixelle_video.pipelines.custom import CustomPipeline
+from pixelle_video.pipelines.standard import StandardPipeline
+from pixelle_video.services.api_media import ApiMediaService
+from pixelle_video.services.frame_processor import FrameProcessor
+from pixelle_video.services.history_manager import HistoryManager
+from pixelle_video.services.image_analysis import ImageAnalysisService
+from pixelle_video.services.llm_service import LLMService
+from pixelle_video.services.media import MediaService
+from pixelle_video.services.persistence import PersistenceService
+from pixelle_video.services.tts_service import TTSService
+from pixelle_video.services.video import VideoService
+from pixelle_video.services.video_analysis import VideoAnalysisService
 
 
 class PixelleVideoCore:
@@ -89,7 +90,7 @@ class PixelleVideoCore:
         # Core services (initialized in initialize())
         self.llm: Optional[LLMService] = None
         self.tts: Optional[TTSService] = None
-        self.media: Optional[MediaService] = None
+        self.media: Optional[Union[MediaService, ApiMediaService]] = None
         self.video: Optional[VideoService] = None
         self.frame_processor: Optional[FrameProcessor] = None
         self.persistence: Optional[PersistenceService] = None
@@ -196,7 +197,14 @@ class PixelleVideoCore:
         # Initialize services
         self.llm = LLMService(self.config)
         self.tts = TTSService(self.config, core=self)
-        self.media = MediaService(self.config, core=self)
+
+        # Route media service based on media.mode config
+        media_mode = self.config.get("media", {}).get("mode", "comfyui")
+        if media_mode == "api":
+            logger.info("📡 Using API media service")
+            self.media = ApiMediaService(self.config)
+        else:
+            self.media = MediaService(self.config, core=self)
         self.image = self.media  # Alias for backward compatibility
         self.image_analysis = ImageAnalysisService(self.config, core=self)
         self.video_analysis = VideoAnalysisService(self.config, core=self)
