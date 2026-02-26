@@ -87,6 +87,9 @@ class MediaApiConfig(BaseModel):
     api_key: str = Field(default="", description="API key")
     image_model: str = Field(default="", description="Image generation model name")
     default_size: str = Field(default="1024x1024", description="Default image size (WxH)")
+    video_base_url: str = Field(default="", description="Video API base URL (defaults to base_url if empty)")
+    video_api_key: str = Field(default="", description="Video API key (defaults to api_key if empty)")
+    video_model: str = Field(default="", description="Video generation model name (e.g. kling-v1)")
 
 
 class MediaConfig(BaseModel):

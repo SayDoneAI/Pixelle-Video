@@ -19,7 +19,7 @@
     {
       "id": "F002",
       "name": "API直连生视频服务",
-      "status": "pending",
+      "status": "done",
       "description": "在ApiMediaService中支持可灵等异步视频生成API，含轮询/超时/重试策略。",
       "acceptance": [
         "media_type=video时调用可灵API提交异步任务",
