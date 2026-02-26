@@ -28,6 +28,7 @@ from pixelle_video.services.api_media import (
 from pixelle_video.services.providers import PROVIDER_REGISTRY
 from pixelle_video.services.providers.kling import KlingProvider
 from pixelle_video.services.providers.openai import OpenAIProvider
+from pixelle_video.services.providers.sucloud_video import SucloudVideoProvider
 
 _needs_api = pytest.mark.skipif(
     not os.environ.get("MEDIA_API_BASE_URL"),
@@ -76,6 +77,10 @@ class TestProviderRegistry:
         assert "kling" in PROVIDER_REGISTRY
         assert PROVIDER_REGISTRY["kling"] is KlingProvider
 
+    def test_sucloud_video_registered(self):
+        assert "sucloud_video" in PROVIDER_REGISTRY
+        assert PROVIDER_REGISTRY["sucloud_video"] is SucloudVideoProvider
+
 
 class TestApiMediaServiceInit:
     """Verify ApiMediaService initializes providers correctly."""
@@ -90,6 +95,12 @@ class TestApiMediaServiceInit:
             base_url="http://test.com", api_key="k", video_provider="kling",
         )
         assert isinstance(svc._video_provider, KlingProvider)
+
+    def test_explicit_sucloud_video_provider(self):
+        svc = _make_service(
+            base_url="http://test.com", api_key="k", video_provider="sucloud_video",
+        )
+        assert isinstance(svc._video_provider, SucloudVideoProvider)
 
     def test_unknown_provider_raises(self):
         with pytest.raises(ValueError, match="Unknown video_provider"):
@@ -173,6 +184,24 @@ class TestKlingProviderUnit:
             )
 
 
+class TestSucloudVideoProviderUnit:
+    """Unit tests for SucloudVideoProvider."""
+
+    def test_image_not_supported(self):
+        provider = SucloudVideoProvider("http://test.com", "k", "veo3.1-fast")
+        with pytest.raises(NotImplementedError):
+            import asyncio
+            asyncio.get_event_loop().run_until_complete(
+                provider.generate_image("test")
+            )
+
+    def test_init_stores_config(self):
+        provider = SucloudVideoProvider("http://test.com/", "key", "veo3.1-fast")
+        assert provider._base_url == "http://test.com"
+        assert provider._api_key == "key"
+        assert provider._model == "veo3.1-fast"
+
+
 # ======================================================================
 # Config schema tests
 # ======================================================================
@@ -215,6 +244,24 @@ class TestConfigSchema:
         cfg2 = PixelleVideoConfig(**d)
         assert cfg2.media.api.video_model == "kling-v1"
         assert cfg2.media.api.video_provider == "kling"
+
+    def test_media_config_sucloud_video_provider(self):
+        cfg = PixelleVideoConfig(
+            media=MediaConfig(
+                mode="api",
+                api=MediaApiConfig(
+                    base_url="http://sucloud.vip", api_key="sk-test",
+                    image_model="doubao-seedream-5-0-260128",
+                    video_model="veo3.1-fast", video_provider="sucloud_video",
+                ),
+            )
+        )
+        d = cfg.to_dict()
+        assert d["media"]["api"]["video_provider"] == "sucloud_video"
+        assert d["media"]["api"]["video_model"] == "veo3.1-fast"
+
+        cfg2 = PixelleVideoConfig(**d)
+        assert cfg2.media.api.video_provider == "sucloud_video"
 
 
 # ======================================================================

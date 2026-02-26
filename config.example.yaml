@@ -50,6 +50,21 @@ comfyui:
     # Video prompt prefix (optional)
     prompt_prefix: "Minimalist black-and-white matchstick figure style illustration, clean lines, simple sketch style"
 
+# ==================== Media Generation Configuration ====================
+# Mode: 'comfyui' (default) or 'api' (OpenAI-compatible endpoint)
+# media:
+#   mode: api
+#   api:
+#     base_url: "https://sucloud.vip/"          # OpenAI-compatible API base URL
+#     api_key: "sk-xxx"                          # API key
+#     image_model: "doubao-seedream-5-0-260128"  # Image model (uses /v1/images/generations)
+#     default_size: "1024x1024"
+#     # Video provider: 'kling' (default) or 'sucloud_video' (unified video API for VEO/Sora)
+#     video_provider: "sucloud_video"
+#     video_model: "veo3.1-fast"                 # Video model name
+#     # video_base_url: ""                       # Optional: separate video API URL
+#     # video_api_key: ""                        # Optional: separate video API key
+
 # ==================== Template Configuration ====================
 # Configure default template for video generation
 template:

@@ -39,6 +39,12 @@
         "API模式下隐藏ComfyUI workflow选择和相关配置",
         "API模式下显示image_model/video_model选择"
       ]
+    },
+    {
+      "id": "F004",
+      "name": "Sucloud视频Provider适配",
+      "status": "done",
+      "description": "新增SucloudVideoProvider，实现sucloud统一视频协议(POST /v1/video/create + GET /v1/video/query)，支持VEO3.1等模型。提取RetryHttpMixin消除重复代码。修复_MAX_RETRIES bug。"
     }
   ],
   "criticalPaths": [
@@ -71,7 +77,7 @@
         "pixelle_video/config/schema.py",
         "pixelle_video/services/frame_processor.py"
       ],
-      "status": "manually_verified",
+      "status": "unverified",
       "evidence": { "method": "code_review_3_rounds" }
     },
     {
@@ -83,8 +89,21 @@
         "pixelle_video/services/api_media.py",
         "pixelle_video/services/frame_processor.py"
       ],
-      "status": "manually_verified",
+      "status": "unverified",
       "evidence": { "method": "code_review_2_rounds" }
+    },
+    {
+      "id": "CP-04",
+      "name": "Sucloud视频生成链路",
+      "steps": ["读取video_provider=sucloud_video配置", "初始化SucloudVideoProvider", "POST /v1/video/create提交任务", "指数退避轮询/v1/video/query", "返回视频URL格式MediaResult"],
+      "features": ["F004"],
+      "modules": [
+        "pixelle_video/services/providers/sucloud_video.py",
+        "pixelle_video/services/api_media.py",
+        "pixelle_video/config/schema.py"
+      ],
+      "status": "manually_verified",
+      "evidence": { "method": "api_call_verified", "model": "veo3.1-fast", "time": "2026-02-27" }
     }
   ],
   "reviewLessons": [
@@ -96,6 +115,68 @@
     "轮询超时必须用 time.monotonic() 而非手动累加",
     "长轮询场景复用 AsyncClient 避免连接浪费",
     "Streamlit 图片展示用 st.image() 不要手拼 HTML（XSS 风险）",
-    "UI 分支变量需在分支前初始化默认值"
-  ]
+    "UI 分支变量需在分支前初始化默认值",
+    "sucloud 视频走统一协议(/v1/video/create + /v1/video/query)，不走 fal-ai/Replicate"
+  ],
+  "verification": {
+    "scope": "sucloud视频provider适配 + _MAX_RETRIES bug修复",
+    "date": "2026-02-26",
+    "testsRun": true,
+    "testsOutput": "22 passed, 3 skipped (integration tests skipped — no env vars) in 0.61s",
+    "buildSuccess": true,
+    "testingLayers": {
+      "unit": {
+        "count": 22,
+        "categories": [
+          "TestProviderRegistry (3): openai/kling/sucloud_video 注册验证",
+          "TestApiMediaServiceInit (6): provider初始化、回退、未知provider报错",
+          "TestApiMediaServiceRouting (3): image/video路由、不支持类型报错",
+          "TestOpenAIProviderUnit (1): video不支持",
+          "TestKlingProviderUnit (1): image不支持",
+          "TestSucloudVideoProviderUnit (2): image不支持 + init存储配置",
+          "TestConfigSchema (5): 默认值、roundtrip、sucloud_video provider配置"
+        ]
+      },
+      "integration": {
+        "count": 3,
+        "status": "skipped (no MEDIA_API_BASE_URL / MEDIA_VIDEO_MODEL env vars)",
+        "categories": [
+          "TestApiMediaServiceImageContract (2): 真实API返回MediaResult",
+          "TestApiMediaServiceVideoContract (1): 真实视频API返回MediaResult"
+        ]
+      }
+    },
+    "structureViolations": [
+      {
+        "severity": "MEDIUM",
+        "file": "pixelle_video/services/providers/sucloud_video.py:139",
+        "issue": "_request_with_retry() 55行，超50行上限",
+        "recommendation": "提取 _do_request 闭包为独立方法 或 抽象到基类"
+      },
+      {
+        "severity": "MEDIUM",
+        "file": "pixelle_video/services/providers/kling.py:133",
+        "issue": "_request_with_retry() 54行，超50行上限",
+        "recommendation": "同上；kling与sucloud的_request_with_retry代码63.7%相似，应提取到共享基类"
+      },
+      {
+        "severity": "LOW",
+        "file": "pixelle_video/services/providers/openai.py:26",
+        "issue": "generate_image() 53行，略超50行上限",
+        "recommendation": "拆分HTTP调用与响应解析"
+      },
+      {
+        "severity": "LOW",
+        "file": "kling.py vs sucloud_video.py",
+        "issue": "63.7%代码相似度，9处重复块（含15行完全相同的_request_with_retry核心逻辑）",
+        "recommendation": "引入BaseVideoProvider抽象基类，提取公共retry/poll逻辑"
+      }
+    ],
+    "bugStatus": {
+      "_MAX_RETRIES": {
+        "status": "fixed",
+        "detail": "不再有_MAX_RETRIES引用，全部使用errors.py中的共享常量MAX_RETRIES"
+      }
+    }
+  }
 }

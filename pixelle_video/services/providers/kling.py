@@ -16,20 +16,22 @@ from loguru import logger
 
 from pixelle_video.models.media import MediaResult
 from pixelle_video.services.providers.errors import (
-    VideoGenerationError,
-    VideoGenerationTimeout,
-    MAX_RETRIES,
     POLL_INITIAL_INTERVAL,
     POLL_MAX_INTERVAL,
     POLL_TIMEOUT,
-    RETRYABLE_STATUS_CODES,
+    RetryHttpMixin,
+    VideoGenerationError,
+    VideoGenerationTimeout,
+    _DEFAULT_TIMEOUT,
 )
 
 _KLING_SUBMIT_PATH = "/kling/v1/videos/text2video"
 
 
-class KlingProvider:
+class KlingProvider(RetryHttpMixin):
     """Kling video generation provider (async submit + poll)."""
+
+    _provider_name = "Kling"
 
     def __init__(self, base_url: str, api_key: str, model: str):
         self._base_url = base_url.rstrip("/")
@@ -84,8 +86,7 @@ class KlingProvider:
         deadline = time.monotonic() + POLL_TIMEOUT
         interval = POLL_INITIAL_INTERVAL
 
-        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
             while time.monotonic() < deadline:
                 await asyncio.sleep(interval)
                 data = await self._request_with_retry(
@@ -124,63 +125,3 @@ class KlingProvider:
         logger.info(f"Kling video generated: {video_url[:80]}...")
         return video_url, duration
 
-    def _headers(self) -> dict[str, str]:
-        return {
-            "Authorization": f"Bearer {self._api_key}",
-            "Content-Type": "application/json",
-        }
-
-    async def _request_with_retry(
-        self,
-        url: str,
-        headers: dict,
-        body: Optional[dict] = None,
-        method: str = "POST",
-        client: Optional[httpx.AsyncClient] = None,
-    ) -> dict:
-        """HTTP request with retry on 429/5xx."""
-        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
-        last_exc: Optional[Exception] = None
-        owns_client = client is None
-
-        async def _do_request(c: httpx.AsyncClient) -> Optional[dict]:
-            nonlocal last_exc
-            for attempt in range(1, MAX_RETRIES + 1):
-                try:
-                    if method == "GET":
-                        resp = await c.get(url, headers=headers)
-                    else:
-                        resp = await c.post(url, json=body, headers=headers)
-                    try:
-                        resp.raise_for_status()
-                    except httpx.HTTPStatusError as e:
-                        if e.response.status_code in RETRYABLE_STATUS_CODES and attempt < MAX_RETRIES:
-                            wait = POLL_INITIAL_INTERVAL * attempt
-                            logger.warning(
-                                f"Retryable {e.response.status_code} on {url}, "
-                                f"retry {attempt}/{_MAX_RETRIES} in {wait}s"
-                            )
-                            last_exc = e
-                            await asyncio.sleep(wait)
-                            continue
-                        raise RuntimeError(
-                            f"Kling API request failed: url={url}, status={e.response.status_code}"
-                        ) from e
-                    return resp.json()
-                except httpx.HTTPError as e:
-                    if attempt < MAX_RETRIES:
-                        last_exc = e
-                        await asyncio.sleep(POLL_INITIAL_INTERVAL * attempt)
-                        continue
-                    raise RuntimeError(f"Kling API connection failed: url={url} — {e}") from e
-            return None
-
-        if owns_client:
-            async with httpx.AsyncClient(timeout=timeout) as c:
-                result = await _do_request(c)
-        else:
-            result = await _do_request(client)
-
-        if result is not None:
-            return result
-        raise RuntimeError(f"Kling API request failed after {MAX_RETRIES} retries: url={url}") from last_exc

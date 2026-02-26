@@ -90,7 +90,7 @@ class MediaApiConfig(BaseModel):
     video_base_url: str = Field(default="", description="Video API base URL (defaults to base_url if empty)")
     video_api_key: str = Field(default="", description="Video API key (defaults to api_key if empty)")
     video_model: str = Field(default="", description="Video generation model name (e.g. kling-v2-5-turbo)")
-    video_provider: str = Field(default="kling", description="Video provider type: 'kling' (default)")
+    video_provider: str = Field(default="kling", description="Video provider type: 'kling' (default), 'sucloud_video' (unified video API)")
 
 
 class MediaConfig(BaseModel):
