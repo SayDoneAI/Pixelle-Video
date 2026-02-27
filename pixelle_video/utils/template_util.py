@@ -459,43 +459,111 @@ def get_templates_grouped_by_size_and_type(
 ) -> dict:
     """
     Get templates grouped by size, optionally filtered by type
-    
+
     Args:
         template_type: Optional type filter ('static', 'image', or 'video')
-    
+
     Returns:
         Dict with size as key, list of TemplateInfo as value
         Ordered by orientation priority: portrait > landscape > square
-    
+
     Examples:
         >>> # Get all templates
         >>> all_grouped = get_templates_grouped_by_size_and_type()
-        
+
         >>> # Get only image templates
         >>> image_grouped = get_templates_grouped_by_size_and_type('image')
     """
     from collections import defaultdict
-    
+
     templates = get_all_templates_with_info()
-    
+
     # Filter by type if specified
     if template_type is not None:
         templates = filter_templates_by_type(templates, template_type)
-    
+
     grouped = defaultdict(list)
-    
+
     for t in templates:
         grouped[t.display_info.size].append(t)
-    
+
     # Sort groups by orientation priority: portrait > landscape > square
     orientation_priority = {'portrait': 0, 'landscape': 1, 'square': 2}
-    
+
     sorted_grouped = {}
     for size in sorted(grouped.keys(), key=lambda s: (
         orientation_priority.get(grouped[s][0].display_info.orientation, 3),
         s
     )):
         sorted_grouped[size] = sorted(grouped[size], key=lambda t: t.display_info.name)
-    
+
     return sorted_grouped
+
+
+def get_template_image_style(template_path: str) -> Optional[str]:
+    """
+    Read the recommended image style from a template's meta tag.
+
+    Parses <meta name="template:image-style" content="..."> from the HTML file.
+
+    Args:
+        template_path: Path to the template HTML file (absolute or relative)
+
+    Returns:
+        The image-style content string, or None if not found
+    """
+    import re
+
+    resolved = resolve_template_path(template_path)
+    try:
+        with open(resolved, 'r', encoding='utf-8') as f:
+            head_lines = []
+            for i, line in enumerate(f):
+                head_lines.append(line)
+                if '</head>' in line or i >= 50:
+                    break
+            head_content = ''.join(head_lines)
+    except (OSError, IOError) as e:
+        logger.warning(f"Failed to read template for image-style: {e}")
+        return None
+
+    match = re.search(
+        r'<meta\s+name=["\']template:image-style["\']\s+content=["\']([^"\']+)["\']',
+        head_content
+    )
+    return match.group(1) if match else None
+
+
+def get_template_recommended_model(template_path: str) -> Optional[str]:
+    """
+    Read the recommended image model from a template's meta tag.
+
+    Parses <meta name="template:recommended-model" content="..."> from the HTML file.
+
+    Args:
+        template_path: Path to the template HTML file (absolute or relative)
+
+    Returns:
+        The recommended model name string, or None if not found
+    """
+    import re
+
+    resolved = resolve_template_path(template_path)
+    try:
+        with open(resolved, 'r', encoding='utf-8') as f:
+            head_lines = []
+            for i, line in enumerate(f):
+                head_lines.append(line)
+                if '</head>' in line or i >= 50:
+                    break
+            head_content = ''.join(head_lines)
+    except (OSError, IOError) as e:
+        logger.warning(f"Failed to read template for recommended-model: {e}")
+        return None
+
+    match = re.search(
+        r'<meta\s+name=["\']template:recommended-model["\']\s+content=["\']([^"\']+)["\']',
+        head_content
+    )
+    return match.group(1) if match else None
 

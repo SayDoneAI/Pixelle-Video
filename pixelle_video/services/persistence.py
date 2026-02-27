@@ -367,6 +367,11 @@ class PersistenceService:
     
     def _config_to_dict(self, config: StoryboardConfig) -> Dict[str, Any]:
         """Convert StoryboardConfig to dict"""
+        # For reference_image, truncate long base64 data to keep storyboard.json small
+        reference_image_value = config.reference_image
+        if reference_image_value and len(reference_image_value) > 200:
+            reference_image_value = "[base64 data]"
+
         return {
             "task_id": config.task_id,
             "n_storyboard": config.n_storyboard,
@@ -385,6 +390,9 @@ class PersistenceService:
             "media_workflow": config.media_workflow,
             "frame_template": config.frame_template,
             "template_params": config.template_params,
+            "image_model": config.image_model,
+            "reference_image": reference_image_value,
+            "character_description": config.character_description,
         }
     
     def _dict_to_config(self, data: Dict[str, Any]) -> StoryboardConfig:
@@ -407,6 +415,9 @@ class PersistenceService:
             media_workflow=data.get("media_workflow", data.get("image_workflow")),  # Backward compatibility
             frame_template=data.get("frame_template", "1080x1920/image_default.html"),
             template_params=data.get("template_params"),
+            image_model=data.get("image_model"),
+            reference_image=data.get("reference_image"),
+            character_description=data.get("character_description"),
         )
     
     def _frame_to_dict(self, frame: StoryboardFrame) -> Dict[str, Any]:

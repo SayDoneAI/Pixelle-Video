@@ -20,6 +20,7 @@ import json
 import re
 from typing import Optional, Type, TypeVar, Union
 
+import httpx
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from loguru import logger
@@ -109,10 +110,13 @@ class LLMService:
         )
         
         # Create client
-        client_kwargs = {"api_key": final_api_key}
+        client_kwargs = {
+            "api_key": final_api_key,
+            "http_client": httpx.AsyncClient(verify=False)
+        }
         if final_base_url:
             client_kwargs["base_url"] = final_base_url
-        
+
         return AsyncOpenAI(**client_kwargs)
     
     async def __call__(

@@ -240,9 +240,11 @@ class CustomPipeline(BasePipeline):
                 max_words=60
             )
             
-            # Example: Apply custom prompt prefix
+            # Apply prompt prefix (priority: template meta > hardcoded default)
             from pixelle_video.utils.prompt_helper import build_image_prompt
-            custom_prefix = "cinematic style, professional lighting"  # Customize this
+            from pixelle_video.utils.template_util import get_template_image_style
+            template_style = get_template_image_style(frame_template)
+            custom_prefix = template_style or "cinematic style, professional lighting"
             
             final_image_prompts = []
             for base_prompt in image_prompts:

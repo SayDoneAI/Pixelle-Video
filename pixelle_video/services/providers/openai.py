@@ -28,8 +28,18 @@ class OpenAIProvider:
         prompt: str,
         width: Optional[int] = None,
         height: Optional[int] = None,
+        reference_image: Optional[str] = None,
     ) -> MediaResult:
-        """Call /v1/images/generations and return MediaResult."""
+        """Call /v1/images/generations and return MediaResult.
+
+        Args:
+            prompt: Text prompt for image generation
+            width: Image width
+            height: Image height
+            reference_image: URL or base64 of reference image for style/character consistency
+        """
+        import asyncio
+
         size = f"{width}x{height}" if width and height else self._default_size
         url = f"{self._base_url}/v1/images/generations"
         headers = {
@@ -44,25 +54,52 @@ class OpenAIProvider:
             "response_format": "url",
         }
 
+        # Add reference image if provided
+        if reference_image:
+            body["image"] = reference_image
+            if reference_image.startswith('http'):
+                logger.info(f"Using reference image URL: {reference_image[:80]}...")
+            else:
+                # Log base64 format details
+                logger.info(f"Using reference image: base64 data (length: {len(reference_image)} chars)")
+                logger.debug(f"Base64 prefix: {reference_image[:100]}...")
+                if not reference_image.startswith('data:image/'):
+                    logger.warning(f"⚠️  Reference image may not have correct format. Expected 'data:image/...;base64,...', got: {reference_image[:50]}...")
+
         logger.info(f"Calling image API: model={self._model}, size={size}")
         logger.debug(f"API URL: {url}")
 
         timeout = httpx.Timeout(connect=10.0, read=120.0, write=10.0, pool=10.0)
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(url, json=body, headers=headers)
-                try:
-                    response.raise_for_status()
-                except httpx.HTTPStatusError as e:
-                    raise RuntimeError(
-                        f"Image API request failed: model={self._model}, size={size}, "
-                        f"status_code={e.response.status_code}"
-                    ) from e
-                data = response.json()
-        except httpx.HTTPError as e:
-            raise RuntimeError(
-                f"Image API connection failed: url={url}, model={self._model} — {e}"
-            ) from e
+
+        # Retry logic for rate limiting
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
+                    response = await client.post(url, json=body, headers=headers)
+                    try:
+                        response.raise_for_status()
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 429 and attempt < max_retries - 1:
+                            wait_time = (attempt + 1) * 5  # 5s, 10s, 15s
+                            logger.warning(f"Rate limited (429), retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        raise RuntimeError(
+                            f"Image API request failed: model={self._model}, size={size}, "
+                            f"status_code={e.response.status_code}"
+                        ) from e
+                    data = response.json()
+                    break  # Success, exit retry loop
+            except httpx.HTTPError as e:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5
+                    logger.warning(f"Connection error, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                    continue
+                raise RuntimeError(
+                    f"Image API connection failed: url={url}, model={self._model} — {e}"
+                ) from e
 
         items = data.get("data") if isinstance(data, dict) else None
         if not items or not isinstance(items, list) or not isinstance(items[0], dict):

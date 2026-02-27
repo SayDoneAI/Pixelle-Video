@@ -120,34 +120,48 @@ Now, please create {narrations_count} corresponding **English** image prompts fo
 def build_image_prompt_prompt(
     narrations: List[str],
     min_words: int,
-    max_words: int
+    max_words: int,
+    character_description: Optional[str] = None
 ) -> str:
     """
     Build image prompt generation prompt
-    
+
     Note: Style/prefix will be applied later via prompt_prefix in config.
-    
+
     Args:
         narrations: List of narrations
         min_words: Minimum word count
         max_words: Maximum word count
-    
+        character_description: Optional character description to include in all prompts
+
     Returns:
         Formatted prompt for LLM
-    
+
     Example:
         >>> build_image_prompt_prompt(narrations, 50, 100)
+        >>> build_image_prompt_prompt(narrations, 50, 100, "a cute yellow flame-shaped cartoon character named Xingbao")
     """
     narrations_json = json.dumps(
         {"narrations": narrations},
         ensure_ascii=False,
         indent=2
     )
-    
-    return IMAGE_PROMPT_GENERATION_PROMPT.format(
+
+    # Format the template FIRST, then append character instruction.
+    # character_description may contain { or } which would break .format().
+    result = IMAGE_PROMPT_GENERATION_PROMPT.format(
         narrations_json=narrations_json,
         narrations_count=len(narrations),
         min_words=min_words,
         max_words=max_words
     )
+
+    if character_description:
+        result += (
+            f"\n\n## Character Consistency Requirement\n"
+            f"**IMPORTANT**: All image prompts MUST feature this character: {character_description}\n"
+            f"Ensure the character appears in every scene and maintains consistent visual characteristics across all images.\n"
+        )
+
+    return result
 

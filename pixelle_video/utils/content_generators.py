@@ -273,11 +273,12 @@ async def generate_image_prompts(
     max_words: int = 60,
     batch_size: int = 10,
     max_retries: int = 3,
-    progress_callback: Optional[callable] = None
+    progress_callback: Optional[callable] = None,
+    character_description: Optional[str] = None
 ) -> List[str]:
     """
     Generate image prompts from narrations (with batching and retry)
-    
+
     Args:
         llm_service: LLM service instance
         narrations: List of narrations
@@ -286,24 +287,27 @@ async def generate_image_prompts(
         batch_size: Max narrations per batch (default: 10)
         max_retries: Max retry attempts per batch (default: 3)
         progress_callback: Optional callback(completed, total, message) for progress updates
-    
+        character_description: Optional character description to include in prompts (e.g., "a cute yellow flame-shaped cartoon character named Xingbao")
+
     Returns:
         List of image prompts (base prompts, without prefix applied)
     """
     from pixelle_video.prompts import build_image_prompt_prompt
-    
+
     logger.info(f"Generating image prompts for {len(narrations)} narrations (batch_size={batch_size})")
-    
+    if character_description:
+        logger.info(f"Using character description: {character_description}")
+
     # Split narrations into batches
     batches = [narrations[i:i + batch_size] for i in range(0, len(narrations), batch_size)]
     logger.info(f"Split into {len(batches)} batches")
-    
+
     all_prompts = []
-    
+
     # Process each batch
     for batch_idx, batch_narrations in enumerate(batches, 1):
         logger.info(f"Processing batch {batch_idx}/{len(batches)} ({len(batch_narrations)} narrations)")
-        
+
         # Retry logic for this batch
         for attempt in range(1, max_retries + 1):
             try:
@@ -311,7 +315,8 @@ async def generate_image_prompts(
                 prompt = build_image_prompt_prompt(
                     narrations=batch_narrations,
                     min_words=min_words,
-                    max_words=max_words
+                    max_words=max_words,
+                    character_description=character_description
                 )
                 
                 response = await llm_service(

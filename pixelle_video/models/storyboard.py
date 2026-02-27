@@ -22,36 +22,45 @@ from typing import List, Optional, Dict, Any
 @dataclass
 class StoryboardConfig:
     """Storyboard configuration parameters"""
-    
+
     # Required parameters (must come first in dataclass)
     media_width: int                           # Media width (image or video, required)
     media_height: int                          # Media height (image or video, required)
-    
+
     # Task isolation
     task_id: Optional[str] = None              # Task ID for file isolation (auto-generated if None)
-    
+
     n_storyboard: int = 5                      # Number of storyboard frames
     min_narration_words: int = 5               # Min narration word count
     max_narration_words: int = 20              # Max narration word count
     min_image_prompt_words: int = 30           # Min image prompt word count
     max_image_prompt_words: int = 60           # Max image prompt word count
-    
+
     # Video parameters (fps only, size is determined by frame template)
     video_fps: int = 30                        # Frame rate
-    
+
     # Audio parameters
     tts_inference_mode: str = "local"          # TTS inference mode: "local" or "comfyui"
     voice_id: Optional[str] = None             # Voice ID (for local: Edge TTS voice ID; for comfyui: workflow-specific)
     tts_workflow: Optional[str] = None         # TTS workflow filename (for ComfyUI mode, None = use default)
     tts_speed: Optional[float] = None          # TTS speed multiplier (0.5-2.0, 1.0 = normal)
     ref_audio: Optional[str] = None            # Reference audio for voice cloning (ComfyUI mode only)
-    
+
     # Media workflow
     media_workflow: Optional[str] = None       # Media workflow filename (image or video, None = use default)
-    
+
     # Frame template (includes size information in path)
     frame_template: str = "1080x1920/image_default.html"  # Template path with size (e.g., "1080x1920/image_default.html")
     template_params: Optional[Dict[str, Any]] = None  # Custom template parameters (e.g., {"accent_color": "#ff0000"})
+
+    # Image model override (resolved from template recommendation or user parameter)
+    image_model: Optional[str] = None          # Image model name (e.g., "z-image-turbo", "gemini-3-pro-image-preview")
+
+    # Reference image for character consistency (URL or base64)
+    reference_image: Optional[str] = None      # Reference image for maintaining character/style consistency
+
+    # Character description (used with reference_image for character consistency)
+    character_description: Optional[str] = None  # Description of the character in reference_image (e.g., "a cute yellow flame-shaped cartoon character")
 
 
 @dataclass

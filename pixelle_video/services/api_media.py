@@ -97,11 +97,34 @@ class ApiMediaService:
         media_type: str = "image",
         width: Optional[int] = None,
         height: Optional[int] = None,
+        image_model: Optional[str] = None,
+        reference_image: Optional[str] = None,
         **params,
     ) -> MediaResult:
-        """Generate media via API. Dispatches to the appropriate provider."""
+        """Generate media via API. Dispatches to the appropriate provider.
+
+        Args:
+            prompt: Text prompt for generation
+            media_type: "image" or "video"
+            width: Image width (optional)
+            height: Image height (optional)
+            image_model: Override image model (optional, for per-request model selection)
+            reference_image: Reference image URL or base64 for style/character consistency
+            **params: Additional provider-specific parameters
+        """
         if media_type == "video":
             return await self._video_provider.generate_video(prompt, **params)
         if media_type != "image":
             raise ValueError(f"Unsupported media_type={media_type!r}")
-        return await self._image_provider.generate_image(prompt, width, height)
+
+        # If image_model is provided, temporarily override the provider's model
+        if image_model:
+            original_model = self._image_provider._model
+            self._image_provider._model = image_model
+            logger.debug(f"Overriding image model: {original_model} -> {image_model}")
+            try:
+                return await self._image_provider.generate_image(prompt, width, height, reference_image)
+            finally:
+                self._image_provider._model = original_model
+        else:
+            return await self._image_provider.generate_image(prompt, width, height, reference_image)

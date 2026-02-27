@@ -57,6 +57,19 @@
       "name": "视频生成配置开关",
       "status": "done",
       "description": "添加video_enabled配置项（默认false），Web UI根据配置隐藏视频选项，降低成本控制。"
+    },
+    {
+      "id": "F007",
+      "name": "角色配置化",
+      "status": "done",
+      "description": "character_description 和 reference_image 从代码参数迁移到 config.yaml 配置（media.api.character 块），支持文件路径自动转 base64，API 参数保留作为 override（空字符串=显式禁用）。同步修复 HTTP API 透传、persistence 序列化、gitignore 规则。",
+      "acceptance": [
+        "config.yaml 配置 character 后生图自动注入角色描述和参考图",
+        "generate_video() 参数优先于配置（override）",
+        "空字符串显式禁用配置中的角色",
+        "reference_image 支持文件路径自动转 base64",
+        "HTTP API 支持 character_description 和 reference_image 参数"
+      ]
     }
   ],
   "criticalPaths": [
@@ -64,7 +77,7 @@
       "id": "CP-01",
       "name": "文本→LLM旁白→生图→TTS→ffmpeg合成视频（标准流水线）",
       "steps": ["用户输入文本", "LLM提炼旁白", "生图(ComfyUI/API)", "TTS语音合成", "FrameProcessor帧合成", "视频拼接+BGM"],
-      "features": ["F001"],
+      "features": ["F001", "F007"],
       "modules": [
         "pixelle_video/pipelines/standard.py",
         "pixelle_video/services/llm_service.py",
@@ -73,7 +86,8 @@
         "pixelle_video/services/tts_service.py",
         "pixelle_video/services/video.py",
         "pixelle_video/services/frame_processor.py",
-        "pixelle_video/utils/content_generators.py"
+        "pixelle_video/utils/content_generators.py",
+        "pixelle_video/prompts/image_generation.py"
       ],
       "status": "unverified",
       "evidence": { "method": "none" }

@@ -81,6 +81,13 @@ class ComfyUIConfig(BaseModel):
     video: VideoSubConfig = Field(default_factory=VideoSubConfig, description="Video-specific configuration")
 
 
+class CharacterConfig(BaseModel):
+    """Character configuration for consistent character across frames"""
+    name: str = Field(default="", description="Character name")
+    description: str = Field(default="", description="Character description for image prompts")
+    reference_image: str = Field(default="", description="Reference image: file path, base64 data URL, or http URL")
+
+
 class MediaApiConfig(BaseModel):
     """API-based media generation configuration"""
     base_url: str = Field(default="", description="OpenAI-compatible API base URL")
@@ -92,6 +99,7 @@ class MediaApiConfig(BaseModel):
     video_model: str = Field(default="", description="Video generation model name (e.g. kling-v2-5-turbo)")
     video_provider: str = Field(default="sucloud_video", description="Video provider type: 'sucloud_video' (default, unified video API), 'kling' (Kling official protocol)")
     video_enabled: bool = Field(default=False, description="Enable video generation features")
+    character: CharacterConfig = Field(default_factory=CharacterConfig, description="Character configuration")
 
 
 class MediaConfig(BaseModel):

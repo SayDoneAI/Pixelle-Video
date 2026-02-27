@@ -140,7 +140,7 @@ class TestApiMediaServiceRouting:
 
         result = await svc(prompt="test", media_type="image", width=512, height=512)
         assert result.media_type == "image"
-        svc._image_provider.generate_image.assert_awaited_once_with("test", 512, 512)
+        svc._image_provider.generate_image.assert_awaited_once_with("test", 512, 512, None)
 
     @pytest.mark.asyncio
     async def test_video_routes_to_video_provider(self):

@@ -15,6 +15,8 @@ Configuration Manager - Singleton pattern
 
 Provides unified access to configuration with automatic validation.
 """
+import base64
+import mimetypes
 from pathlib import Path
 from typing import Any, Optional
 from loguru import logger
@@ -48,11 +50,46 @@ class ConfigManager:
         """Load configuration from file"""
         data = load_config_dict(str(self.config_path))
         config = PixelleVideoConfig(**data)
-        
+
         # Validate template path exists
         self._validate_template(config.template.default_template)
-        
+
+        # Resolve character reference_image file path to base64 (once at load time)
+        self._resolve_character_reference_image(config)
+
         return config
+
+    def _resolve_character_reference_image(self, config: PixelleVideoConfig):
+        """Convert character reference_image file path to base64 data URL.
+
+        Only converts local file paths. Leaves data URLs and http URLs as-is.
+        """
+        ref = config.media.api.character.reference_image
+        if not ref:
+            return
+
+        # Already a data URL or http URL — keep as-is
+        if ref.startswith("data:") or ref.startswith("http"):
+            logger.debug(f"Character reference_image is URL, keeping as-is")
+            return
+
+        # Treat as file path
+        ref_path = Path(ref)
+        if not ref_path.is_absolute():
+            ref_path = self.config_path.parent / ref_path
+
+        if not ref_path.exists():
+            logger.warning(f"已禁用 reference_image: 文件不存在 — {ref_path}")
+            config.media.api.character.reference_image = ""
+            return
+
+        mime_type = mimetypes.guess_type(str(ref_path))[0] or "image/jpeg"
+        raw = ref_path.read_bytes()
+        b64 = base64.b64encode(raw).decode("ascii")
+        data_url = f"data:{mime_type};base64,{b64}"
+
+        config.media.api.character.reference_image = data_url
+        logger.info(f"Character reference_image loaded from {ref} ({len(raw)} bytes)")
     
     def _validate_template(self, template_path: str):
         """Validate that the configured template exists"""
@@ -172,6 +209,7 @@ class ConfigManager:
 
     def get_media_config(self) -> dict:
         """Get media generation configuration as dict"""
+        char = self.config.media.api.character
         return {
             "mode": self.config.media.mode,
             "api": {
@@ -183,6 +221,11 @@ class ConfigManager:
                 "video_base_url": self.config.media.api.video_base_url,
                 "video_api_key": self.config.media.api.video_api_key,
                 "default_size": self.config.media.api.default_size,
+                "character": {
+                    "name": char.name,
+                    "description": char.description,
+                    "reference_image": "(base64)" if char.reference_image.startswith("data:") else char.reference_image,
+                },
             }
         }
 

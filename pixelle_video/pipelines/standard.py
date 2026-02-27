@@ -45,7 +45,7 @@ from pixelle_video.utils.os_util import (
     create_task_output_dir,
     get_task_final_video_path
 )
-from pixelle_video.utils.template_util import get_template_type
+from pixelle_video.utils.template_util import get_template_type, get_template_image_style, get_template_recommended_model
 from pixelle_video.utils.prompt_helper import build_image_prompt
 from pixelle_video.services.video import VideoService
 
@@ -72,7 +72,33 @@ class StandardPipeline(LinearVideoPipeline):
     - "generate": LLM generates narrations from topic
     - "fixed": Use provided script as-is (each line = one narration)
     """
-    
+
+    # ==================== Character Config Helpers ====================
+
+    def _resolve_character_description(self, ctx: PipelineContext) -> Optional[str]:
+        """Resolve character_description: API param overrides config fallback.
+
+        - Key present with non-empty value → use that value
+        - Key present with empty string → explicitly disabled (return None)
+        - Key absent → fall back to config
+        """
+        if "character_description" in ctx.params:
+            return ctx.params["character_description"] or None
+        from pixelle_video.config import config_manager
+        return config_manager.config.media.api.character.description or None
+
+    def _resolve_reference_image(self, ctx: PipelineContext) -> Optional[str]:
+        """Resolve reference_image: API param overrides config fallback.
+
+        - Key present with non-empty value → use that value
+        - Key present with empty string → explicitly disabled (return None)
+        - Key absent → fall back to config
+        """
+        if "reference_image" in ctx.params:
+            return ctx.params["reference_image"] or None
+        from pixelle_video.config import config_manager
+        return config_manager.config.media.api.character.reference_image or None
+
     # ==================== Lifecycle Methods ====================
 
     async def setup_environment(self, ctx: PipelineContext):
@@ -202,13 +228,41 @@ class StandardPipeline(LinearVideoPipeline):
                     narrations=ctx.narrations,
                     min_words=min_words,
                     max_words=max_words,
-                    progress_callback=image_prompt_progress
+                    progress_callback=image_prompt_progress,
+                    character_description=self._resolve_character_description(ctx)
                 )
                 
-                # Apply prompt prefix
+                # Apply prompt prefix (priority: user param > template meta > config)
                 image_config = self.core.config.get("comfyui", {}).get("image", {})
-                prompt_prefix_to_use = prompt_prefix if prompt_prefix is not None else image_config.get("prompt_prefix", "")
-                
+                if prompt_prefix is not None:
+                    prompt_prefix_to_use = prompt_prefix
+                else:
+                    template_style = get_template_image_style(frame_template)
+                    if template_style:
+                        prompt_prefix_to_use = template_style
+                        logger.info(f"Using template image-style: '{template_style}'")
+                    else:
+                        prompt_prefix_to_use = image_config.get("prompt_prefix", "")
+
+                # Determine image model (priority: user param > template recommended > config default)
+                user_image_model = ctx.params.get("image_model")
+                if user_image_model:
+                    image_model_to_use = user_image_model
+                    logger.info(f"Using user-specified image model: '{image_model_to_use}'")
+                else:
+                    template_model = get_template_recommended_model(frame_template)
+                    if template_model:
+                        image_model_to_use = template_model
+                        logger.info(f"Using template recommended model: '{template_model}'")
+                    else:
+                        # Fall back to config default
+                        media_config = self.core.config.get("media", {}).get("api", {})
+                        image_model_to_use = media_config.get("image_model", "z-image-turbo")
+                        logger.info(f"Using config default image model: '{image_model_to_use}'")
+
+                # Store in context for later use
+                ctx.params["_resolved_image_model"] = image_model_to_use
+
                 ctx.image_prompts = []
                 for base_prompt in base_image_prompts:
                     final_prompt = build_image_prompt(base_prompt, prompt_prefix_to_use)
@@ -250,7 +304,7 @@ class StandardPipeline(LinearVideoPipeline):
             # Old API
             final_voice_id = voice_id or tts_voice or "zh-CN-YunjianNeural"
             logger.debug(f"TTS Mode: legacy (voice_id={final_voice_id}, workflow={final_tts_workflow})")
-            
+
         # Create config
         ctx.config = StoryboardConfig(
             task_id=ctx.task_id,
@@ -269,9 +323,12 @@ class StandardPipeline(LinearVideoPipeline):
             media_height=ctx.params.get("media_height"),
             media_workflow=ctx.params.get("media_workflow"),
             frame_template=ctx.params.get("frame_template") or "1080x1920/default.html",
-            template_params=ctx.params.get("template_params")
+            template_params=ctx.params.get("template_params"),
+            image_model=ctx.params.get("_resolved_image_model"),  # Pass resolved model from plan_visuals
+            reference_image=self._resolve_reference_image(ctx),  # Pass reference image for character consistency
+            character_description=self._resolve_character_description(ctx)  # Pass character description for prompt generation
         )
-        
+
         # Create storyboard
         ctx.storyboard = Storyboard(
             title=ctx.title,

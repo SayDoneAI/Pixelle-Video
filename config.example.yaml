@@ -64,6 +64,12 @@ comfyui:
 #     video_model: "veo3.1-fast"                 # Video model name
 #     # video_base_url: ""                       # Optional: separate video API URL
 #     # video_api_key: ""                        # Optional: separate video API key
+#     # Character consistency (F007) — keep the same character across all frames
+#     character:
+#       name: "Xingbao"                          # Character name (for logging/display)
+#       description: "a cute yellow flame-shaped cartoon character named Xingbao"  # Injected into image prompts
+#       reference_image: "resources/xingbao.jpg" # File path, http URL, or data:image/...;base64,...
+#       # File paths are resolved relative to config.yaml and converted to base64 at load time
 
 # ==================== Template Configuration ====================
 # Configure default template for video generation

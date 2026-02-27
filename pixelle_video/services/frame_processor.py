@@ -201,15 +201,15 @@ class FrameProcessor:
     ):
         """Step 2: Generate media (image or video) using ComfyKit"""
         logger.debug(f"  2/4: Generating media for frame {frame.index}...")
-        
+
         # Determine media type based on workflow
         # video_ prefix in workflow name indicates video generation
         workflow_name = config.media_workflow or ""
         is_video_workflow = "video_" in workflow_name.lower()
         media_type = "video" if is_video_workflow else "image"
-        
+
         logger.debug(f"  → Media type: {media_type} (workflow: {workflow_name})")
-        
+
         # Build media generation parameters
         media_params = {
             "prompt": frame.image_prompt,
@@ -219,19 +219,29 @@ class FrameProcessor:
             "height": config.media_height,
             "index": frame.index + 1,  # 1-based index for workflow
         }
-        
+
         # For video workflows: pass audio duration as target video duration
         # This ensures video length matches audio length from the source
         if is_video_workflow and frame.duration:
             media_params["duration"] = frame.duration
             logger.info(f"  → Generating video with target duration: {frame.duration:.2f}s (from TTS audio)")
-        
+
+        # Pass resolved image_model if available (from template recommendation or user override)
+        if hasattr(config, 'image_model') and config.image_model:
+            media_params["image_model"] = config.image_model
+            logger.debug(f"  → Using image model: {config.image_model}")
+
+        # Pass reference_image if available (for character consistency)
+        if hasattr(config, 'reference_image') and config.reference_image:
+            media_params["reference_image"] = config.reference_image
+            logger.debug(f"  → Using reference image for character consistency")
+
         # Call Media generation
         media_result = await self.core.media(**media_params)
-        
+
         # Store media type
         frame.media_type = media_result.media_type
-        
+
         if media_result.is_image:
             # Download image to local (pass task_id)
             local_path = await self._download_media(
@@ -242,7 +252,7 @@ class FrameProcessor:
             )
             frame.image_path = local_path
             logger.debug(f"  ✓ Image generated: {local_path}")
-        
+
         elif media_result.is_video:
             # Download video to local (pass task_id)
             local_path = await self._download_media(
@@ -422,15 +432,15 @@ class FrameProcessor:
         """Download media (image or video) from URL to local file"""
         from pixelle_video.utils.os_util import get_task_frame_path
         output_path = get_task_frame_path(task_id, frame_index, media_type)
-        
+
         timeout = httpx.Timeout(connect=10.0, read=60, write=60, pool=60)
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
             response = await client.get(url)
             response.raise_for_status()
-            
+
             with open(output_path, 'wb') as f:
                 f.write(response.content)
-        
+
         return output_path
     
     async def _get_video_duration(self, video_path: str) -> float:
