@@ -51,6 +51,12 @@
       "name": "Web UI模型下拉选择+费用标注",
       "status": "done",
       "description": "API模式下图片/视频模型改为下拉列表，预置sucloud已验证模型及定价，支持自定义输入。Provider-model联动，纯逻辑与UI解耦。"
+    },
+    {
+      "id": "F006",
+      "name": "视频生成配置开关",
+      "status": "done",
+      "description": "添加video_enabled配置项（默认false），Web UI根据配置隐藏视频选项，降低成本控制。"
     }
   ],
   "criticalPaths": [
@@ -123,13 +129,15 @@
     "Streamlit 图片展示用 st.image() 不要手拼 HTML（XSS 风险）",
     "UI 分支变量需在分支前初始化默认值",
     "sucloud 视频走统一协议(/v1/video/create + /v1/video/query)，不走 fal-ai/Replicate",
-    "默认值必须全局统一（schema/presets/UI fallback），不一致会导致行为不可预测"
+    "默认值必须全局统一（schema/presets/UI fallback），不一致会导致行为不可预测",
+    "图片模式（media_type=image）应使用 image_*.html 模板，视频模式（media_type=video）才使用 video_*.html 模板",
+    "默认模板路径必须指向实际存在的文件（1080x1920/default.html 不存在）"
   ],
   "verification": {
-    "scope": "sucloud视频provider适配 + _MAX_RETRIES bug修复",
-    "date": "2026-02-26",
+    "scope": "F006 视频配置开关 + 默认模板修复",
+    "date": "2026-02-27",
     "testsRun": true,
-    "testsOutput": "22 passed, 3 skipped (integration tests skipped — no env vars) in 0.61s",
+    "testsOutput": "60 passed, 3 skipped",
     "buildSuccess": true,
     "testingLayers": {
       "unit": {
