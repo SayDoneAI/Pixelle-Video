@@ -35,6 +35,24 @@ EDGE_TTS_VOICES: List[Dict[str, Any]] = [
         "gender": "female"
     },
     {
+        "id": "zh-CN-XiaochenNeural",
+        "label_key": "tts.voice.zh_CN_XiaochenNeural",
+        "locale": "zh-CN",
+        "gender": "female"
+    },
+    {
+        "id": "zh-CN-XiaoxuanNeural",
+        "label_key": "tts.voice.zh_CN_XiaoxuanNeural",
+        "locale": "zh-CN",
+        "gender": "female"
+    },
+    {
+        "id": "zh-CN-XiaohanNeural",
+        "label_key": "tts.voice.zh_CN_XiaohanNeural",
+        "locale": "zh-CN",
+        "gender": "female"
+    },
+    {
         "id": "zh-CN-YunjianNeural",
         "label_key": "tts.voice.zh_CN_YunjianNeural",
         "locale": "zh-CN",

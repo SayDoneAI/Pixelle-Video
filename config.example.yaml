@@ -28,7 +28,12 @@ comfyui:
 
   # TTS 语音合成
   tts:
-    default_workflow: selfhost/tts_edge.json  # TTS 工作流
+    inference_mode: local                       # 推理模式：'local'（Edge TTS，免费）或 'comfyui'
+    local:
+      voice: zh-CN-XiaoxiaoNeural              # 推荐：XiaoxiaoNeural（女声天花板）/ YunxiNeural（男声第一）
+      speed: 1.2                               # 语速 0.5-2.0（1.0=正常，1.2=稍快）
+    # comfyui 模式工作流
+    default_workflow: selfhost/tts_edge.json    # TTS 工作流（comfyui 模式使用）
 
   # 图片生成
   image:

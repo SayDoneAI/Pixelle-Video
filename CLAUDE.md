@@ -147,3 +147,59 @@ uv run pytest tests/ -v
 - `config.yaml` 包含 API Key，已在 `.gitignore` 中，**绝对不要提交**
 - `config.example.yaml` 是配置模板，新增配置项时必须同步更新
 - 上游同步：`main` 分支定期 `git pull upstream main`，然后 `dev` 分支 rebase
+
+## 模型调研（2026-02-27）
+
+### 图片生成模型
+
+| 模型 | 平台 | 单价(1K) | 特点 | sucloud支持 |
+|------|------|----------|------|-------------|
+| gemini-3.1-flash-image-preview | Google | $0.067 | 4K输出、4-6秒、Flash速度+Pro级质量 | 已支持 |
+| gemini-3-pro-image-preview | Google | $0.134 | 4K、94%文本渲染、角色一致性95%+ | 已支持 |
+| gpt-image-1 | OpenAI | $0.04-0.17 | Prompt遵循度高 | 已支持 |
+| DALL-E 3 | OpenAI | $0.016 | 性价比高但无4K | 已支持 |
+
+### 视频生成模型（Seedance 2.0 竞品）
+
+| 模型 | 开发商 | 分辨率 | 时长 | 唇同步 | 每10s约价 |
+|------|--------|--------|------|--------|-----------|
+| Runway Gen-4.5 | Runway | 1080p | 10s | 无 | ~$0.75 |
+| Veo 3.1 | Google | 1080p/4K | 8s | 最佳原生 | ~$2.50 |
+| Kling 3.0 | 快手 | 4K/60fps | 15s | 8+语言 | ~$0.50 |
+| Seedance 2.0 | 字节跳动 | 2K | 15s | 8+语言 | ~$0.30-0.60 |
+| Sora 2 | OpenAI | 1080p | 25s | 有限 | ~$1.00 |
+| Wan 2.2 | 阿里巴巴 | 720p | 5s | 无 | ~$0.20(开源) |
+
+### Talking Head（图片开口说话）
+
+技术趋势：扩散模型取代GAN，从唇同步扩展到全身动画。
+
+推荐方案（按优先级）：
+1. **Seedance 2.0** — 全家桶，音频驱动+视频生成一体，API待正式开放（火山引擎）
+2. **Veo 3.1** — 原生音频+唇同步最佳，价格较高
+3. **Kling 3.0** — 性价比最高，已有Provider可复用
+4. **OmniHuman 1.5**（字节）— 专用talking head，$0.04-0.16/s
+
+开源SOTA（需GPU）：Hallo3（复旦）、LatentSync 1.6（字节）、MuseTalk 1.5（腾讯）
+
+### API聚合平台
+
+| 平台 | 支持模型 | 协议 | 特点 |
+|------|---------|------|------|
+| sucloud.vip | 图片+LLM（300+模型） | OpenAI兼容 | 项目已用，视频模型待确认 |
+| Atlas Cloud | Seedance 2.0+Kling 3.0+Sora 2 | OpenAI兼容 | 视频模型推荐 |
+| 硅基流动 SiliconFlow | Wan 2.2+HunyuanVideo | OpenAI兼容 | 开源视频极低价 |
+| fal.ai | Veo 3.1+Kling+多种 | REST API | 海外开发者常用 |
+
+### TTS 语音合成
+
+当前方案：Edge TTS（免费，微软），默认晓晓 XiaoxiaoNeural。
+
+| 方案 | 热门声音 | 成本 | 中文质量 | 接入状态 |
+|------|---------|------|---------|---------|
+| Edge TTS | 晓晓(女声天花板)、云希(男声第一) | 免费 | 极佳 | 已集成(默认) |
+| 豆包TTS(火山引擎) | 解说小帅(现象级)、灿灿、擎苍 | ¥2/万字 | 顶级 | 待对接 |
+| MiniMax speech-02-hd | 青涩青年、甜美女声、御姐 | ¥5.6/万字 | 优秀 | sucloud已支持 |
+| Gemini 2.5 Flash TTS | 自然语言控制风格 | $10/M tokens | 好 | sucloud已支持 |
+
+sucloud 音频模型：26个，含 MiniMax TTS、Gemini TTS、OpenAI TTS/Audio、Kling Audio、Vidu TTS。
