@@ -174,7 +174,7 @@ class CustomPipeline(BasePipeline):
         # Priority: explicit param > config default > hardcoded default
         if frame_template is None:
             template_config = self.core.config.get("template", {})
-            frame_template = template_config.get("default_template", "1080x1920/default.html")
+            frame_template = template_config.get("default_template", "1080x1920/image_default.html")
         
         # ========== Step 0.5: Check template requirements ==========
         # Detect template type by filename prefix
@@ -519,7 +519,7 @@ Example 2: AI-generated image video
 result = await pixelle_video.generate_video(
     text="Your content here",
     pipeline="my_custom",
-    frame_template="1080x1920/default.html"  # Template with {{image}}
+    frame_template="1080x1920/image_default.html"  # Template with {{image}}
 )
 # Will automatically generate images via LLM + ComfyUI
 

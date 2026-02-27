@@ -405,7 +405,7 @@ class PersistenceService:
             media_width=data.get("media_width", data.get("image_width", 1024)),  # Backward compatibility
             media_height=data.get("media_height", data.get("image_height", 1024)),  # Backward compatibility
             media_workflow=data.get("media_workflow", data.get("image_workflow")),  # Backward compatibility
-            frame_template=data.get("frame_template", "1080x1920/default.html"),
+            frame_template=data.get("frame_template", "1080x1920/image_default.html"),
             template_params=data.get("template_params"),
         )
     

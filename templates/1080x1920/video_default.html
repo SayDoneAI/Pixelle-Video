@@ -38,6 +38,10 @@
             left: 0;
             width: 100%;
             height: 100%;
+            background-image: url("{{image}}");
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
             z-index: 0;
         }
         
@@ -95,14 +99,14 @@
             text-align: center;
             line-height: 1.6;
             font-weight: 500;
-            text-shadow: 
+            text-shadow:
                 2px 2px 4px rgba(0, 0, 0, 0.9),
                 0 0 8px rgba(0, 0, 0, 0.8),
                 0 0 16px rgba(0, 0, 0, 0.6);
             padding: 10px 0px;
             /* background-color: aqua; */
         }
-        
+
         /* Footer - positioned below video */
         .footer {
             position: absolute;
@@ -117,33 +121,33 @@
             border-top: 2px solid rgba(255, 255, 255, 0.3);
             z-index: 2;
         }
-        
+
         .author-section {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .author {
             font-size: 32px;
             font-weight: 600;
             color: #ffffff;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        
+
         .author-desc {
             font-size: 24px;
             color: rgba(255, 255, 255, 0.9);
             font-weight: 400;
         }
-        
+
         .logo-section {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 10px;
         }
-        
+
         .logo {
             font-size: 28px;
             font-weight: 600;
@@ -157,9 +161,7 @@
     <!-- 主容器 - 所有元素都在这里面，相对于video-overlay定位 -->
     <div class="main-container">
         <!-- Background image layer (customizable via background parameter) -->
-        <div class="background-image">
-            
-        </div>
+        <div class="background-image"></div>
         
         <!-- Video overlay - 居中参考点 -->
         <div class="video-overlay"></div>
@@ -173,7 +175,7 @@
         <div class="content">
             <div class="text">{{text}}</div>
         </div>
-        
+
         <!-- Footer - positioned below video -->
         <div class="footer">
             <div class="author-section">
