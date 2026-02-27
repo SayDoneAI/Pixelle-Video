@@ -53,6 +53,12 @@ class TestImageModelPresets:
         assert "flux-dev" in ids
         assert "flux-pro" in ids
 
+    def test_includes_gemini_models(self):
+        ids = get_image_model_ids()
+        assert "gemini-3.1-flash-image-preview" in ids
+        assert "gemini-2.5-flash-image" in ids
+        assert "gemini-3-pro-image-preview" in ids
+
 
 class TestVideoProviderPresets:
     def test_has_entries(self):

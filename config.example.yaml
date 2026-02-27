@@ -58,6 +58,7 @@ comfyui:
 #     base_url: "https://sucloud.vip/"           # OpenAI 兼容 API 地址
 #     api_key: "sk-xxx"                          # API 密钥
 #     image_model: "doubao-seedream-5-0-260128"  # 图片模型（调用 /v1/images/generations）
+#     # 推荐图片模型：dall-e-3, gemini-3.1-flash-image-preview（4K/$0.067/张）, flux-schnell
 #     default_size: "1024x1024"                  # 默认图片尺寸
 #
 #     # --- 视频生成 ---

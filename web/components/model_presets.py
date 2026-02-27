@@ -56,6 +56,7 @@ IMAGE_MODEL_PRESETS: tuple[ModelOption, ...] = (
     ModelOption("gpt-image-1", "gpt-image-1", "official, edit support", "$0.08/张"),
 
     # Gemini Image series (Google)
+    ModelOption("gemini-3.1-flash-image-preview", "gemini-3.1-flash-image-preview", "4K output, 4-6s/张", "$0.067/张"),
     ModelOption("gemini-2.5-flash-image", "gemini-2.5-flash-image", "fast, conversational", "$0.09/张"),
     ModelOption("gemini-3-pro-image-preview", "gemini-3-pro-image-preview", "Nano Banana 2, 2K/4K", "$0.198/张"),
 
