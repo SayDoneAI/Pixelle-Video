@@ -396,6 +396,109 @@ A: **本项目完全支持免费运行！**
 **选择建议**：本地有显卡建议完全免费方案，否则推荐使用通义千问（性价比高）
 
 
+## 🔌 SayDoneAI 扩展功能
+
+> 本仓库是 [AIDC-AI/Pixelle-Video](https://github.com/AIDC-AI/Pixelle-Video) 的 Fork（[SayDoneAI/Pixelle-Video](https://github.com/SayDoneAI/Pixelle-Video)），在上游基础上新增了 **API 直连模式**，无需本地 GPU 和 ComfyUI 即可生成图片和视频。
+
+### 分支策略
+
+| 分支 | 用途 |
+|------|------|
+| `main` | 保持与上游 AIDC-AI/Pixelle-Video 同步 |
+| `dev` | 所有自定义改动，日常开发分支 |
+
+### 新增功能一览
+
+| 编号 | 功能 | 说明 |
+|------|------|------|
+| F001 | API 直连生图 | 调用 OpenAI 兼容 `/v1/images/generations` 接口生图，无需 ComfyUI |
+| F002 | API 异步生视频 | 支持可灵等异步视频 API，含指数退避轮询 + 自动重试 |
+| F003 | Web UI 模式切换 | ComfyUI / API 模式在 Web 界面动态切换 |
+| F004 | Sucloud 视频 Provider | sucloud 统一视频协议（`/v1/video/create` + `/v1/video/query`），支持 VEO3.1 等模型 |
+| F005 | Web UI 模型下拉 | API 模式下图片/视频模型下拉列表 + 费用标注 |
+| F006 | 视频生成开关 | `video_enabled` 配置控制是否启用视频生成，降低成本 |
+| F007 | 角色配置化 | `character` 信息（name / description / reference_image）从 `config.yaml` 加载，支持文件路径自动转 base64 |
+
+### API 模式快速上手
+
+API 模式让你 **无需 GPU、无需 ComfyUI**，只需一个 OpenAI 兼容的图片/视频 API 即可生成完整视频。
+
+#### 第一步：配置 `config.yaml`
+
+```yaml
+# 复制 config.example.yaml 为 config.yaml，然后修改以下关键项
+
+# LLM 配置（用于生成文案）
+llm:
+  api_key: "sk-xxx"
+  base_url: "https://api.openai.com/v1"
+  model: "gpt-4o"
+
+# 媒体生成配置 — 选择 API 模式
+media:
+  mode: api                              # 'api' 或 'comfyui'
+  api:
+    base_url: "https://your-api.com/"    # OpenAI 兼容 API 地址
+    api_key: "sk-xxx"
+    image_model: "dall-e-3"              # 图片模型
+    default_size: "1024x1024"
+    video_provider: "sucloud_video"      # 视频 Provider：sucloud_video 或 kling
+    video_model: "veo3.1-fast"           # 视频模型
+    video_enabled: false                 # 是否启用视频生成（成本较高，按需开启）
+
+    # 角色一致性配置（可选）— 让所有分镜保持同一角色
+    character:
+      name: "星宝"
+      description: "a cute yellow flame-shaped cartoon character"
+      reference_image: "resources/xingbao.jpg"  # 文件路径（自动转 base64）、http URL 或 data URL
+```
+
+#### 第二步：启动 Web 界面
+
+```bash
+uv run streamlit run web/app.py
+```
+
+在 Web 界面的「⚙️ 系统配置」中，图像配置会自动显示为 API 模式，可直接选择模型并生成。
+
+#### 角色配置化说明（F007）
+
+角色配置让所有分镜中的角色保持一致风格：
+
+- **`character.name`** — 角色名称，用于日志和显示
+- **`character.description`** — 角色描述，自动注入到每个生图 prompt 中
+- **`character.reference_image`** — 参考图，支持三种格式：
+  - 本地文件路径（如 `resources/xingbao.jpg`，自动转 base64）
+  - HTTP URL（如 `https://example.com/char.png`）
+  - Data URL（如 `data:image/png;base64,...`）
+- API 参数 `character_description` 和 `reference_image` 可作为 override，空字符串表示显式禁用配置中的角色
+
+### 项目架构（API 模式扩展）
+
+```
+pixelle_video/
+├── config/
+│   └── schema.py              # Pydantic 配置模型（含 MediaConfig / CharacterConfig）
+├── services/
+│   ├── api_media.py           # ApiMediaService — API 模式入口，路由 image/video 到 Provider
+│   ├── media.py               # ComfyUI 模式的 MediaService
+│   └── providers/
+│       ├── base.py            # MediaProvider 抽象基类
+│       ├── openai.py          # OpenAI Provider（图片生成）
+│       ├── kling.py           # Kling Provider（异步视频生成）
+│       ├── sucloud_video.py   # Sucloud Provider（统一视频协议）
+│       └── errors.py          # 共享错误类型和重试常量
+├── service.py                 # ServiceManager — 根据 media.mode 初始化对应 Service
+└── ...
+web/
+├── components/
+│   ├── media_config.py        # API/ComfyUI 模式切换 UI
+│   ├── model_presets.py       # 模型预设（含 sucloud 定价）
+│   └── style_config.py        # 视觉风格配置
+└── ...
+```
+
+
 ## 🤝 参考项目
 
 Pixelle-Video 的设计受到以下优秀开源项目的启发：

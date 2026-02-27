@@ -1,88 +1,90 @@
-# Pixelle-Video Configuration
-# Copy this file to config.yaml and fill in your settings
-# ⚠️ Never commit config.yaml to Git!
+# Pixelle-Video 配置文件
+# 将此文件复制为 config.yaml 并填入你的配置
+# ⚠️ 切勿将 config.yaml 提交到 Git！
 
 project_name: Pixelle-Video
 
-# ==================== LLM Configuration ====================
-# Supports any OpenAI SDK compatible API
+# ==================== LLM 配置 ====================
+# 支持任何 OpenAI SDK 兼容的 API
 llm:
-  api_key: ""
-  base_url: ""
-  model: ""
+  api_key: ""                    # LLM API 密钥
+  base_url: ""                   # LLM API 地址
+  model: ""                      # 模型名称
 
-# Popular presets:
-# Qwen Max:        base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  model: "qwen-max"
-# OpenAI GPT-4o:   base_url: "https://api.openai.com/v1"                          model: "gpt-4o"
-# DeepSeek:        base_url: "https://api.deepseek.com"                           model: "deepseek-chat"
-# Ollama (Local):  base_url: "http://localhost:11434/v1"                          model: "llama3.2"
+# 常用预设：
+# 通义千问:     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  model: "qwen-max"
+# OpenAI GPT-4o: base_url: "https://api.openai.com/v1"                         model: "gpt-4o"
+# DeepSeek:     base_url: "https://api.deepseek.com"                           model: "deepseek-chat"
+# Ollama (本地): base_url: "http://localhost:11434/v1"                          model: "llama3.2"
 
-# ==================== ComfyUI Configuration ====================
+# ==================== ComfyUI 配置 ====================
+# ComfyUI 模式下的图片/视频生成配置（media.mode=comfyui 时生效）
 comfyui:
-  # Global ComfyUI settings
-  comfyui_url: http://127.0.0.1:8188  # ComfyUI server URL (required for selfhost workflows)
-  comfyui_api_key: ""  # ComfyUI API key (optional, get from https://platform.comfy.org/profile/api-keys)
-  # Note for Docker users: Use host.docker.internal:8188 (Mac/Windows) or host IP address (Linux)
-  runninghub_api_key: ""  # RunningHub API key (required for runninghub workflows)
-  runninghub_concurrent_limit: 1  # Concurrent execution limit for RunningHub (1-10, default 1 for regular members)
-  
-  # TTS-specific configuration
+  comfyui_url: http://127.0.0.1:8188  # ComfyUI 服务地址（selfhost 工作流必填）
+  comfyui_api_key: ""                  # ComfyUI API Key（可选）
+  # Docker 用户：使用 host.docker.internal:8188 (Mac/Windows) 或宿主机 IP (Linux)
+  runninghub_api_key: ""               # RunningHub API Key（runninghub 工作流必填）
+  runninghub_concurrent_limit: 1       # RunningHub 并发限制（1-10，默认 1）
+
+  # TTS 语音合成
   tts:
-    default_workflow: selfhost/tts_edge.json  # TTS workflow to use
-  
-  # Image-specific configuration
+    default_workflow: selfhost/tts_edge.json  # TTS 工作流
+
+  # 图片生成
   image:
-    # Required: Default workflow to use (no fallback)
-    # Options: runninghub/image_flux.json (recommended, no local setup)
-    #          selfhost/image_flux.json (requires local ComfyUI)
+    # 默认工作流（无回退）
+    # 选项：runninghub/image_flux.json（推荐，无需本地环境）
+    #       selfhost/image_flux.json（需要本地 ComfyUI）
     default_workflow: runninghub/image_flux.json
-    
-    # Image prompt prefix (optional)
+    # 图片提示词前缀（可选，控制画风）
     prompt_prefix: "Minimalist black-and-white matchstick figure style illustration, clean lines, simple sketch style"
-  
-  # Video-specific configuration
+
+  # 视频生成
   video:
-    # Required: Default workflow to use (no fallback)
-    # Options: runninghub/video_wan2.1_fusionx.json (recommended, no local setup)
-    #          selfhost/video_wan2.1_fusionx.json (requires local ComfyUI)
+    # 默认工作流（无回退）
+    # 选项：runninghub/video_wan2.1_fusionx.json（推荐）
+    #       selfhost/video_wan2.1_fusionx.json（需要本地 ComfyUI）
     default_workflow: runninghub/video_wan2.1_fusionx.json
-    
-    # Video prompt prefix (optional)
+    # 视频提示词前缀（可选）
     prompt_prefix: "Minimalist black-and-white matchstick figure style illustration, clean lines, simple sketch style"
 
-# ==================== Media Generation Configuration ====================
-# Mode: 'comfyui' (default) or 'api' (OpenAI-compatible endpoint)
+# ==================== 媒体生成配置（SayDoneAI 扩展）====================
+# 模式：'comfyui'（默认，使用上方 ComfyUI 配置）或 'api'（OpenAI 兼容 API，无需 GPU）
+#
+# 取消下方注释即可启用 API 模式：
 # media:
-#   mode: api
+#   mode: api                                    # 切换为 API 模式
 #   api:
-#     base_url: "https://sucloud.vip/"          # OpenAI-compatible API base URL
-#     api_key: "sk-xxx"                          # API key
-#     image_model: "doubao-seedream-5-0-260128"  # Image model (uses /v1/images/generations)
-#     default_size: "1024x1024"
-#     # Video provider: 'kling' (default) or 'sucloud_video' (unified video API for VEO/Sora)
-#     video_provider: "sucloud_video"
-#     video_model: "veo3.1-fast"                 # Video model name
-#     # video_base_url: ""                       # Optional: separate video API URL
-#     # video_api_key: ""                        # Optional: separate video API key
-#     # Character consistency (F007) — keep the same character across all frames
+#     base_url: "https://sucloud.vip/"           # OpenAI 兼容 API 地址
+#     api_key: "sk-xxx"                          # API 密钥
+#     image_model: "doubao-seedream-5-0-260128"  # 图片模型（调用 /v1/images/generations）
+#     default_size: "1024x1024"                  # 默认图片尺寸
+#
+#     # --- 视频生成 ---
+#     video_enabled: false                       # 是否启用视频生成（默认关闭，成本较高）
+#     video_provider: "sucloud_video"            # 视频 Provider：'sucloud_video'（默认）或 'kling'
+#     video_model: "veo3.1-fast"                 # 视频模型名称
+#     # video_base_url: ""                       # 可选：单独的视频 API 地址（默认复用 base_url）
+#     # video_api_key: ""                        # 可选：单独的视频 API 密钥（默认复用 api_key）
+#
+#     # --- 角色一致性（F007）— 让所有分镜保持同一角色 ---
 #     character:
-#       name: "Xingbao"                          # Character name (for logging/display)
-#       description: "a cute yellow flame-shaped cartoon character named Xingbao"  # Injected into image prompts
-#       reference_image: "resources/xingbao.jpg" # File path, http URL, or data:image/...;base64,...
-#       # File paths are resolved relative to config.yaml and converted to base64 at load time
+#       name: "星宝"                              # 角色名称（用于日志/显示）
+#       description: "a cute yellow flame-shaped cartoon character named Xingbao"  # 角色描述（自动注入到生图 prompt）
+#       reference_image: "resources/xingbao.jpg"  # 参考图：文件路径（自动转 base64）、http URL 或 data URL
+#       # 文件路径相对于 config.yaml 所在目录解析
 
-# ==================== Template Configuration ====================
-# Configure default template for video generation
+# ==================== 模板配置 ====================
+# 视频帧模板，决定画面布局和风格
 template:
-  # Default frame template to use when not explicitly specified
-  # Determines video aspect ratio and layout style
-  # Template naming convention:
-  #   - static_*.html: Static style templates (no AI-generated media)
-  #   - image_*.html: Templates requiring AI-generated images
-  #   - video_*.html: Templates requiring AI-generated videos
-  # Options: 
-  #   - 1080x1920 (vertical/portrait): image_default.html, image_modern.html, image_elegant.html, static_simple.html, etc.
-  #   - 1080x1080 (square): image_minimal_framed.html, etc.
-  #   - 1920x1080 (horizontal/landscape): image_film.html, image_full.html, etc.
-  # See templates/ directory for all available templates
+  # 默认帧模板
+  # 模板命名规范：
+  #   - static_*.html：静态模板（纯文字，无需 AI 生成媒体）
+  #   - image_*.html：图片模板（使用 AI 生成的图片）
+  #   - video_*.html：视频模板（使用 AI 生成的视频）
+  # 按尺寸分组：
+  #   - 1080x1920（竖屏）：image_default.html, image_modern.html, image_elegant.html 等
+  #   - 1080x1080（方形）：image_minimal_framed.html 等
+  #   - 1920x1080（横屏）：image_film.html, image_full.html 等
+  # 详见 templates/ 目录
   default_template: "1080x1920/image_default.html"
