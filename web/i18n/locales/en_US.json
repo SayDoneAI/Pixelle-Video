@@ -517,6 +517,10 @@
     "settings.media.image_model_help": "Model name for image generation",
     "settings.media.video_model": "Video Model",
     "settings.media.video_model_help": "Model name for video generation (e.g. kling-v1)",
+    "settings.media.video_provider": "Video Provider",
+    "settings.media.video_provider_help": "Video generation provider protocol",
+    "settings.media.custom_model": "Custom...",
+    "settings.media.custom_model_input": "Custom Model Name",
     "settings.media.video_base_url": "Video API Base URL",
     "settings.media.video_base_url_help": "Leave empty to use same as image API",
     "settings.media.video_api_key": "Video API Key",
@@ -524,6 +528,6 @@
     "settings.media.api_hint": "API mode: OpenAI-compatible endpoints, no ComfyUI required",
     "settings.media.comfyui_hint": "ComfyUI mode: workflow-based media generation",
     "style.api_mode_info": "API mode active — media generated via API, no workflow selection needed",
-    "style.api_mode_model_info": "Image: {image_model} | Video: {video_model}"
+    "style.api_mode_model_info": "Image: {image_model} | Video: {video_model} (via {video_provider})"
   }
 }

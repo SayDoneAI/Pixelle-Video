@@ -39,9 +39,11 @@ def render_api_media_section(template_media_type: str) -> tuple:
         api_cfg = config_manager.config.media.api
         image_model = api_cfg.image_model or "\u2014"
         video_model = api_cfg.video_model or "\u2014"
+        video_provider = api_cfg.video_provider or "\u2014"
         st.caption(tr("style.api_mode_model_info",
                       image_model=image_model,
-                      video_model=video_model))
+                      video_model=video_model,
+                      video_provider=video_provider))
 
         media_width = st.session_state.get('template_media_width')
         media_height = st.session_state.get('template_media_height')

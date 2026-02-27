@@ -1,6 +1,6 @@
 {
   "version": "v2",
-  "updated": "2026-02-26",
+  "updated": "2026-02-27",
   "note": "Pixelle-Video — AI全自动短视频引擎，新增API直连生图/生视频能力",
   "features": [
     {
@@ -45,6 +45,12 @@
       "name": "Sucloud视频Provider适配",
       "status": "done",
       "description": "新增SucloudVideoProvider，实现sucloud统一视频协议(POST /v1/video/create + GET /v1/video/query)，支持VEO3.1等模型。提取RetryHttpMixin消除重复代码。修复_MAX_RETRIES bug。"
+    },
+    {
+      "id": "F005",
+      "name": "Web UI模型下拉选择+费用标注",
+      "status": "done",
+      "description": "API模式下图片/视频模型改为下拉列表，预置sucloud已验证模型及定价，支持自定义输入。Provider-model联动，纯逻辑与UI解耦。"
     }
   ],
   "criticalPaths": [
@@ -116,7 +122,8 @@
     "长轮询场景复用 AsyncClient 避免连接浪费",
     "Streamlit 图片展示用 st.image() 不要手拼 HTML（XSS 风险）",
     "UI 分支变量需在分支前初始化默认值",
-    "sucloud 视频走统一协议(/v1/video/create + /v1/video/query)，不走 fal-ai/Replicate"
+    "sucloud 视频走统一协议(/v1/video/create + /v1/video/query)，不走 fal-ai/Replicate",
+    "默认值必须全局统一（schema/presets/UI fallback），不一致会导致行为不可预测"
   ],
   "verification": {
     "scope": "sucloud视频provider适配 + _MAX_RETRIES bug修复",

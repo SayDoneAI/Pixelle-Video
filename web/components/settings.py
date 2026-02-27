@@ -233,6 +233,7 @@ def render_advanced_settings():
             media_api_key = ""
             media_image_model = ""
             media_video_model = ""
+            media_video_provider = ""
             media_video_base_url = ""
             media_video_api_key = ""
             comfyui_url = ""
@@ -243,6 +244,19 @@ def render_advanced_settings():
 
             # --- API Mode Config ---
             if media_mode == "api":
+                from web.components.model_presets import (
+                    CUSTOM_OPTION,
+                    IMAGE_MODEL_PRESETS,
+                    DEFAULT_IMAGE_MODEL,
+                    VIDEO_PROVIDER_PRESETS,
+                    DEFAULT_VIDEO_PROVIDER,
+                    VIDEO_MODEL_PRESETS,
+                    get_video_models_for_provider,
+                    get_default_video_model,
+                    resolve_selection,
+                    format_model_label,
+                )
+
                 with st.container(border=True):
                     api_cfg = media_config.get("api", {})
 
@@ -260,21 +274,92 @@ def render_advanced_settings():
                         key="media_api_key_input"
                     )
 
-                    img_col, vid_col = st.columns(2)
-                    with img_col:
-                        media_image_model = st.text_input(
-                            tr("settings.media.image_model"),
-                            value=api_cfg.get("image_model", ""),
+                    # --- Image model dropdown ---
+                    saved_image_model = api_cfg.get("image_model", DEFAULT_IMAGE_MODEL)
+                    img_preset_ids = [m.id for m in IMAGE_MODEL_PRESETS]
+                    img_options = img_preset_ids + [CUSTOM_OPTION]
+                    img_labels = {m.id: format_model_label(m) for m in IMAGE_MODEL_PRESETS}
+                    img_labels[CUSTOM_OPTION] = tr("settings.media.custom_model")
+
+                    if saved_image_model in img_preset_ids:
+                        img_default_idx = img_options.index(saved_image_model)
+                    else:
+                        img_default_idx = img_options.index(CUSTOM_OPTION)
+
+                    img_selected = st.selectbox(
+                        tr("settings.media.image_model"),
+                        options=img_options,
+                        index=img_default_idx,
+                        format_func=lambda x: img_labels.get(x, x),
+                        help=tr("settings.media.image_model_help"),
+                        key="media_image_model_select"
+                    )
+
+                    if img_selected == CUSTOM_OPTION:
+                        img_custom = st.text_input(
+                            tr("settings.media.custom_model_input"),
+                            value=saved_image_model if saved_image_model not in img_preset_ids else "",
                             help=tr("settings.media.image_model_help"),
-                            key="media_image_model_input"
+                            key="media_image_model_custom"
                         )
+                        media_image_model = resolve_selection(img_selected, img_custom)
+                    else:
+                        media_image_model = img_selected
+
+                    # --- Video provider dropdown ---
+                    saved_provider = api_cfg.get("video_provider", DEFAULT_VIDEO_PROVIDER)
+                    prov_ids = [p.id for p in VIDEO_PROVIDER_PRESETS]
+                    prov_labels = {p.id: f"{p.label}  ({p.hint})" if p.hint else p.label for p in VIDEO_PROVIDER_PRESETS}
+
+                    prov_default_idx = prov_ids.index(saved_provider) if saved_provider in prov_ids else 0
+
+                    provider_col, vid_col = st.columns(2)
+                    with provider_col:
+                        media_video_provider = st.selectbox(
+                            tr("settings.media.video_provider"),
+                            options=prov_ids,
+                            index=prov_default_idx,
+                            format_func=lambda x: prov_labels.get(x, x),
+                            help=tr("settings.media.video_provider_help"),
+                            key="media_video_provider_select"
+                        )
+
+                    # --- Video model dropdown (linked to provider) ---
+                    vid_preset_ids = get_video_models_for_provider(media_video_provider)
+                    vid_options = vid_preset_ids + [CUSTOM_OPTION]
+                    vid_presets = VIDEO_MODEL_PRESETS.get(media_video_provider, ())
+                    vid_labels = {m.id: format_model_label(m) for m in vid_presets}
+                    vid_labels[CUSTOM_OPTION] = tr("settings.media.custom_model")
+
+                    saved_video_model = api_cfg.get("video_model", "")
+                    if saved_video_model in vid_preset_ids:
+                        vid_default_idx = vid_options.index(saved_video_model)
+                    elif saved_video_model and saved_video_model not in vid_preset_ids:
+                        vid_default_idx = vid_options.index(CUSTOM_OPTION)
+                    else:
+                        default_vm = get_default_video_model(media_video_provider)
+                        vid_default_idx = vid_options.index(default_vm) if default_vm in vid_options else 0
+
                     with vid_col:
-                        media_video_model = st.text_input(
+                        vid_selected = st.selectbox(
                             tr("settings.media.video_model"),
-                            value=api_cfg.get("video_model", ""),
+                            options=vid_options,
+                            index=vid_default_idx,
+                            format_func=lambda x: vid_labels.get(x, x),
                             help=tr("settings.media.video_model_help"),
-                            key="media_video_model_input"
+                            key="media_video_model_select"
                         )
+
+                    if vid_selected == CUSTOM_OPTION:
+                        vid_custom = st.text_input(
+                            tr("settings.media.custom_model_input"),
+                            value=saved_video_model if saved_video_model not in vid_preset_ids else "",
+                            help=tr("settings.media.video_model_help"),
+                            key="media_video_model_custom"
+                        )
+                        media_video_model = resolve_selection(vid_selected, vid_custom)
+                    else:
+                        media_video_model = vid_selected
 
                     with st.expander(tr("settings.media.video_base_url"), expanded=False):
                         media_video_base_url = st.text_input(
@@ -393,6 +478,7 @@ def render_advanced_settings():
                                 "api_key": media_api_key,
                                 "image_model": media_image_model,
                                 "video_model": media_video_model,
+                                "video_provider": media_video_provider,
                                 "video_base_url": media_video_base_url,
                                 "video_api_key": media_video_api_key,
                             }

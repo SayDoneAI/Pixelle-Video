@@ -179,6 +179,7 @@ class ConfigManager:
                 "api_key": self.config.media.api.api_key,
                 "image_model": self.config.media.api.image_model,
                 "video_model": self.config.media.api.video_model,
+                "video_provider": self.config.media.api.video_provider,
                 "video_base_url": self.config.media.api.video_base_url,
                 "video_api_key": self.config.media.api.video_api_key,
                 "default_size": self.config.media.api.default_size,

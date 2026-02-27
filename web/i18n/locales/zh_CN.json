@@ -517,6 +517,10 @@
     "settings.media.image_model_help": "图片生成模型名称",
     "settings.media.video_model": "视频模型",
     "settings.media.video_model_help": "视频生成模型名称（如 kling-v1）",
+    "settings.media.video_provider": "视频 Provider",
+    "settings.media.video_provider_help": "视频生成的协议提供方",
+    "settings.media.custom_model": "自定义...",
+    "settings.media.custom_model_input": "自定义模型名称",
     "settings.media.video_base_url": "视频 API Base URL",
     "settings.media.video_base_url_help": "留空则使用与图片相同的地址",
     "settings.media.video_api_key": "视频 API Key",
@@ -524,6 +528,6 @@
     "settings.media.api_hint": "API 模式：使用 OpenAI 兼容接口，无需 ComfyUI",
     "settings.media.comfyui_hint": "ComfyUI 模式：基于工作流的媒体生成",
     "style.api_mode_info": "API 模式已启用 — 通过 API 生成媒体，无需选择工作流",
-    "style.api_mode_model_info": "图片模型: {image_model} | 视频模型: {video_model}"
+    "style.api_mode_model_info": "图片模型: {image_model} | 视频模型: {video_model} (via {video_provider})"
   }
 }

@@ -85,9 +85,9 @@ class TestProviderRegistry:
 class TestApiMediaServiceInit:
     """Verify ApiMediaService initializes providers correctly."""
 
-    def test_default_video_provider_is_kling(self):
+    def test_default_video_provider_is_sucloud(self):
         svc = _make_service(base_url="http://test.com", api_key="k")
-        assert isinstance(svc._video_provider, KlingProvider)
+        assert isinstance(svc._video_provider, SucloudVideoProvider)
         assert isinstance(svc._image_provider, OpenAIProvider)
 
     def test_explicit_kling_provider(self):
@@ -220,9 +220,9 @@ class TestConfigSchema:
         assert cfg.media.api.video_base_url == ""
         assert cfg.media.api.video_api_key == ""
 
-    def test_video_provider_default_is_kling(self):
+    def test_video_provider_default_is_sucloud(self):
         cfg = PixelleVideoConfig()
-        assert cfg.media.api.video_provider == "kling"
+        assert cfg.media.api.video_provider == "sucloud_video"
 
     def test_media_config_roundtrip(self):
         cfg = PixelleVideoConfig(
