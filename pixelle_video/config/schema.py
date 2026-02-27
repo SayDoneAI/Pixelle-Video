@@ -91,6 +91,7 @@ class MediaApiConfig(BaseModel):
     video_api_key: str = Field(default="", description="Video API key (defaults to api_key if empty)")
     video_model: str = Field(default="", description="Video generation model name (e.g. kling-v2-5-turbo)")
     video_provider: str = Field(default="sucloud_video", description="Video provider type: 'sucloud_video' (default, unified video API), 'kling' (Kling official protocol)")
+    video_enabled: bool = Field(default=False, description="Enable video generation features")
 
 
 class MediaConfig(BaseModel):
