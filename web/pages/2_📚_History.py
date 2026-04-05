@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-History Page - View generation history and manage tasks
+历史记录页 - 查看生成记录并管理任务。
 """
 
 import sys
@@ -35,7 +35,7 @@ from web.utils.async_helpers import run_async
 
 # Page config
 st.set_page_config(
-    page_title="History - Pixelle-Video",
+    page_title="历史记录 - Pixelle-Video",
     page_icon="📚",
     layout="wide",
 )

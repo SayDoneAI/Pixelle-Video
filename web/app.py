@@ -14,7 +14,7 @@
 Pixelle-Video Web UI - Main Entry Point
 
 This is the entry point for the Streamlit multi-page application.
-Uses st.navigation to define pages and set the default page to Home.
+Uses st.navigation to define pages and set the default page to Template Studio.
 """
 
 import sys
@@ -30,7 +30,7 @@ import streamlit as st
 
 # Setup page config (must be first Streamlit command)
 st.set_page_config(
-    page_title="Pixelle-Video - AI Video Generator",
+    page_title="Pixelle-Video - 模板工作台",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -40,21 +40,15 @@ st.set_page_config(
 def main():
     """Main entry point with navigation"""
     # Define pages using st.Page
-    home_page = st.Page(
-        "pages/1_🎬_Home.py",
-        title="Home",
-        icon="🎬",
+    template_studio_page = st.Page(
+        "pages/3_🧩_Template_Studio.py",
+        title="模板工作台",
+        icon="🧩",
         default=True
     )
     
-    history_page = st.Page(
-        "pages/2_📚_History.py",
-        title="History",
-        icon="📚"
-    )
-    
     # Set up navigation and run
-    pg = st.navigation([home_page, history_page])
+    pg = st.navigation([template_studio_page])
     pg.run()
 
 

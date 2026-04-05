@@ -130,7 +130,7 @@
              - For video assets: empty (hidden by CSS)
         -->
         <div class="background-layer" id="bg-layer">
-            <!-- Image will be inserted here for image assets only -->
+            <img src="{{image}}" alt="{{title}}">
         </div>
 
         <!-- Shadow Overlay for Text Readability -->
@@ -153,22 +153,6 @@
         </div>
     </div>
 
-    <script>
-        // Conditionally add image if provided
-        (function () {
-            var imageUrl = "{{image}}";
-            var bgLayer = document.getElementById('bg-layer');
-
-            // Only add img tag if image URL is provided and not empty
-            if (imageUrl && imageUrl.trim() !== "" && imageUrl !== "None") {
-                var img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = "Background";
-                bgLayer.appendChild(img);
-            }
-            // Otherwise, bg-layer stays empty and gets hidden by CSS
-        })();
-    </script>
 </body>
 
 </html>

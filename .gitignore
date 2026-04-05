@@ -74,3 +74,10 @@ examples/
 repositories/
 
 *.out
+
+# Local assistant/session artifacts
+.conversations/
+preview_outputs/
+task_plan.md
+findings.md
+progress.md

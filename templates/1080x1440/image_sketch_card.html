@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="template:media-width" content="1024">
+    <meta name="template:media-height" content="1024">
+    <meta name="viewport" content="width=1080, height=1440">
+    <title>手绘卡片风格 - 1080x1440</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --page-background: {{page_background:color=#ffffff}};
+
+            --title-bar-height: {{title_bar_height:number=72}}px;
+            --title-bar-padding-x: {{title_bar_padding_x:number=80}}px;
+            --title-bar-bg: {{title_bar_bg:color=#f2f2f2}};
+            --title-bar-border-color: {{title_bar_border_color:color=#ebebeb}};
+            --title-color: {{title_color:color=#1a1a1a}};
+            --title-font-size: {{title_font_size:number=32}}px;
+
+            --illustration-bottom: {{illustration_bottom:number=410}}px;
+            --illustration-padding-x: {{illustration_padding_x:number=26}}px;
+            --illustration-top-padding: {{illustration_top_padding:number=28}}px;
+            --illustration-bottom-padding: {{illustration_bottom_padding:number=24}}px;
+            --illustration-card-padding: {{illustration_card_padding:number=18}}px;
+            --illustration-frame-color: {{illustration_frame_color:color=#f3f3f3}};
+            --illustration-fill-mode: {{illustration_fill_mode:text=contain}};
+
+            --divider-height: {{divider_height:number=8}}px;
+            --divider-inset: {{divider_inset:number=36}}px;
+            --divider-color: {{divider_color:color=#1a1a1a}};
+
+            --caption-section-height: {{caption_section_height:number=403}}px;
+            --caption-padding-top: {{caption_padding_top:number=36}}px;
+            --caption-padding-x: {{caption_padding_x:number=68}}px;
+            --caption-padding-bottom: {{caption_padding_bottom:number=40}}px;
+            --caption-font-size: {{caption_font_size:number=52}}px;
+            --caption-text-color: {{caption_text_color:color=#1a1a1a}};
+            --caption-text-align: {{caption_text_align:text=center}};
+
+            --footer-text-color: {{footer_text_color:color=#8a8a8a}};
+            --author-font-size: {{author_font_size:number=22}}px;
+            --tagline-font-size: {{tagline_font_size:number=18}}px;
+        }
+
+        html, body {
+            width: 1080px;
+            height: 1440px;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: "PingFang SC", "Noto Sans SC", "Source Han Sans", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--page-background);
+            color: #1a1a1a;
+        }
+
+        .frame {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--page-background);
+        }
+
+        .title-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--title-bar-height);
+            padding: 0 var(--title-bar-padding-x);
+            background: var(--title-bar-bg);
+            border-bottom: 1px solid var(--title-bar-border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .title {
+            font-size: var(--title-font-size);
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: 0.8px;
+            color: var(--title-color);
+        }
+
+        .illustration-section {
+            position: absolute;
+            top: var(--title-bar-height);
+            left: 0;
+            right: 0;
+            bottom: var(--illustration-bottom);
+            padding:
+                var(--illustration-top-padding)
+                var(--illustration-padding-x)
+                var(--illustration-bottom-padding);
+            background: var(--page-background);
+        }
+
+        .illustration-card {
+            width: 100%;
+            height: 100%;
+            padding: var(--illustration-card-padding);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at top left, rgba(0, 0, 0, 0.025), transparent 34%),
+                linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
+            border: 1px solid var(--illustration-frame-color);
+        }
+
+        .illustration-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: var(--illustration-fill-mode);
+            display: block;
+        }
+
+        .caption-divider {
+            position: absolute;
+            left: var(--divider-inset);
+            right: var(--divider-inset);
+            bottom: var(--caption-section-height);
+            height: var(--divider-height);
+            background: var(--divider-color);
+        }
+
+        .caption-section {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: var(--caption-section-height);
+            padding:
+                var(--caption-padding-top)
+                var(--caption-padding-x)
+                var(--caption-padding-bottom);
+            background: var(--page-background);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .caption {
+            font-size: var(--caption-font-size);
+            font-weight: 700;
+            line-height: 1.36;
+            letter-spacing: 0.4px;
+            color: var(--caption-text-color);
+            text-align: var(--caption-text-align);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            color: var(--footer-text-color);
+        }
+
+        .meta-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .author,
+        .brand {
+            font-size: var(--author-font-size);
+            line-height: 1.4;
+            letter-spacing: 0.3px;
+        }
+
+        .brand {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .tagline {
+            font-size: var(--tagline-font-size);
+            line-height: 1.45;
+            letter-spacing: 0.2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame" data-studio-node="frame">
+        <div class="title-bar" data-studio-node="title_bar">
+            <div class="title" data-studio-node="title">{{title}}</div>
+        </div>
+
+        <div class="illustration-section" data-studio-node="illustration_section">
+            <div class="illustration-card" data-studio-node="illustration_card">
+                <img src="{{image}}" alt="{{title}}" data-studio-node="image">
+            </div>
+        </div>
+
+        <div class="caption-divider" data-studio-node="caption_divider"></div>
+
+        <div class="caption-section" data-studio-node="caption_section">
+            <div class="caption" data-studio-node="caption">{{text}}</div>
+            <div class="brand-meta" data-studio-node="brand_meta">
+                <div class="meta-top">
+                    <div class="author" data-studio-node="author">{{author:text=创业向导，少走弯路，多做正事}}</div>
+                    <div class="brand" data-studio-node="brand">{{brand:text=Pixelle-Video}}</div>
+                </div>
+                <div class="tagline" data-studio-node="tagline">{{tagline:text=内容仅供参考，不构成具体建议}}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

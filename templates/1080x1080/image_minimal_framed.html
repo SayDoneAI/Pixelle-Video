@@ -84,19 +84,19 @@
         }
     </style>
 </head>
-<body>
-    <div class="header">
-        <div class="title">{{title}}</div>
+<body data-studio-node="template_canvas">
+    <div class="header" data-studio-node="title_group">
+        <div class="title" data-studio-node="title">{{title}}</div>
     </div>
 
-    <div class="image-section">
-        <div class="image-container">
-            <img src="{{image}}" alt="内容图片">
+    <div class="image-section" data-studio-node="image_section">
+        <div class="image-container" data-studio-node="image_frame">
+            <img src="{{image}}" alt="内容图片" data-studio-node="image">
         </div>
     </div>
 
-    <div class="footer">
-        <div class="text">{{text}}</div>
+    <div class="footer" data-studio-node="footer">
+        <div class="text" data-studio-node="text">{{text}}</div>
     </div>
 </body>
 </html>
